@@ -19,38 +19,59 @@ flow:
   - matriceGaranzie.do?_PWUo_=RSi (Riepilogo Garanzie)
  */
 
-function savePageInformation(url) {
+function savePageInformation(w, $, url) {
   // the page has to be identified by metro-title,
   // since the url doesn't always change
+  var ctx = w.document;
+  var title = $('h2.metro-title').text();
 
-  // these vars are actually inside
-  // SessionStorage
-  var loadingTimestamp = ""
-  var clickedStuff = []:
-  var checkboxesSelected = []:
-  var datiAnagrafici = [];
-  var datiContratto = {};
+  w.sessionStorage.setItem('timestamp_'+ title, Date.now());
+  var clickedStuff = [];
 
-  $(document).load(function(_e){
-    loadingTimestamp = Date.now();
-  });
-
-  $(document).click(function(e) {
-    clickedStuff.push($(e.target).html());
+  $(ctx).click(function(e) {
+    clickedStuff.push($(e.target).text());
   });
 
   // assuming all submit buttons are called "Prosegui"
-  $("a:contains('Prosegui')").click(function(e) {
-    datiAnagrafici = intoPairs(allFormFieldsText());
-    datiContratto = takeDatiContratto();
-    checkboxesSelected = $('input[type=checkbox]:checked').toArray();
+  $("a:contains('Prosegui')", ctx).click(function(e) {
+    var info;
+    switch(title) {
+      case 'Dati anagrafici':
+        info = intoPairs(allFormFieldsText($));
+      case 'Dati contratto':
+        info = takeDatiContratto($);
+      case 'Attestato di rischio':
+        info = takeAttestatoDiRischio($);
+      default:
+        info = {};
+      // case 'checkbox windows': // ?
+      //   info = intoPairs(allCheckedBoxes($));
+    }
+    storeInformation(w, title+'-information', info);
   });
 
 }
 
-function takeDatiContratto() {
-  function takeFromInput(name) {$('input[name='+name+']').val();}
-  function takeFromSelect(name) {$('select[name='+name+'] option:selected').text();}
+function storeInformation(w, label, info) {
+  w.sessionStorage.setItem(label, JSON.stringify(info));
+}
+
+function takeAttestatoDiRischio(jQuery) {
+  function takeFromInput(name) {jQuery('input[name='+name+']').val();}
+  var data = {};
+  data.siglaTarga = takeFromInput('siglaTarga');
+  data.numTarga = takeFromInput('numTarga');
+  data.siglaTargaATR = takeFromInput('siglaTargaATR');
+  data.numTargaATR = takeFromInput('numTargaATR');
+  data.siglaTargaAnia = takeFromInput('siglaTargaAnia');
+  data.numTargaAnia = takeFromInput('numTargaAnia');
+  data.polRif = takeFromInput('polRif');
+  return data;
+}
+
+function takeDatiContratto(jQuery) {
+  function takeFromInput(name) {jQuery('input[name='+name+']').val();}
+  function takeFromSelect(name) {jQuery('select[name='+name+'] option:selected').text();}
   var data = {};
   data.Decorrenza = takeFromInput('dataDecor');
   data.Ora = takeFromInput('oraDecor');
@@ -73,13 +94,16 @@ function takeDatiContratto() {
 }
 
 
-function allFormFieldsText() {
-  return $('tr > td.formleft, tr > td.label').toArray().map(function(x){ return x.innerText; });
+function allFormFieldsText(jQuery) {
+  return jQuery('tr > td.formleft, tr > td.label')
+    .toArray()
+    .map(function(x){ return x.innerText; });
 }
 
-function allCheckedBoxes() {
-  // TODO take text, not object
-  return $('input[type=checkbox]:checked').toArray();
+function allCheckedBoxes(jQuery) {
+  return jQuery('.formleft > input[type=checkbox]:checked')
+    .parent().siblings().toArray()
+    .map(function(x){ return x.innerText; })
 }
 
 function intoPairs(arr) {
