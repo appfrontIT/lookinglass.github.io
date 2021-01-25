@@ -42,7 +42,6 @@ function savePageInformation(w, $, url) {
 }
 
 function takeSwitch(title, $) {
-  console.log(title);
   switch(title) {
     case 'Elenco Garanzie':
       return intoPairs(allCheckedBoxes($));
@@ -52,7 +51,7 @@ function takeSwitch(title, $) {
       return ["not implemented"];
     case 'Dati Contratto':
       return takeDatiContratto($);
-    case 'Attestato di rischio':
+    case 'Attestato di Rischio':
       if(isTextOnPage('Polizza di riferimento Dallbogg')){
         return takeAttestatoDiRischio($);
       } else {
