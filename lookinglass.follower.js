@@ -38,7 +38,9 @@ function savePageInformation(w, $, url) {
     var info = takeSwitch(title, $);
     console.log(info);
     w.sessionStorage.setItem(title+'-information', JSON.stringify(info));
+    e.preventDefault();
     confirm('Ya sure?');
+    return true;
   });
 
 }
