@@ -17,6 +17,7 @@ flow:
   - attestatoRischio.do?_PWUo_=RSi (Prodotto autovetture)
   - matriceGaranzie.do?_PWUo_=RSi (Matrice Garanzie)
   - matriceGaranzie.do?_PWUo_=RSi (Riepilogo Garanzie)
+  -
  */
 
 function savePageInformation(w, $, url) {
@@ -36,24 +37,30 @@ function savePageInformation(w, $, url) {
   $("a:contains('Prosegui')", ctx).click(function(e) {
     var info;
     switch(title) {
-      case 'Dati anagrafici':
+      case 'Elenco Garanzie':
+        info = intoPairs(allCheckedBoxes($));
+      case 'Dati Anagrafici':
         info = intoPairs(allFormFieldsText($));
-      case 'Dati contratto':
+      case 'Questionario':
+        info = ["not implemented"];
+      case 'Dati Contratto':
         info = takeDatiContratto($);
       case 'Attestato di rischio':
-        info = takeAttestatoDiRischio($);
+        if(url.includes('attestatoRischioFr.do')){
+          info = takeAttestatoDiRischioSummary($);
+        } else {
+          info = takeAttestatoDiRischio($);
+        }
+      case 'Prodotto AUTOVETTURE':
+        if($("td:contains('GARANZIA PRESTATA')").length == 0) {
+          info = takeProdottoAutovetture($);
+        }
       default:
         info = {};
-      // case 'checkbox windows': // ?
-      //   info = intoPairs(allCheckedBoxes($));
     }
-    storeInformation(w, title+'-information', info);
+    w.sessionStorage.setItem(title+'-information', JSON.stringify(info));
   });
 
-}
-
-function storeInformation(w, label, info) {
-  w.sessionStorage.setItem(label, JSON.stringify(info));
 }
 
 function takeAttestatoDiRischio(jQuery) {
@@ -67,6 +74,33 @@ function takeAttestatoDiRischio(jQuery) {
   data.numTargaAnia = takeFromInput('numTargaAnia');
   data.polRif = takeFromInput('polRif');
   return data;
+}
+
+function takeAttestatoDiRischioSummary(jQuery) {
+  function takeFromSelect(name) {jQuery('select[name='+name+'] option:selected').text();}
+  var data = {};
+  data.compagniaProv = takeFromSelect('compagniaProv');
+  var tmp = {};
+  $('input.input5').toArray().forEach(function(x){
+    if(x.value!="")
+      tmp[x.name] = x.value;
+  });
+  data.input5 = tmp;
+  return data;
+}
+
+function takeProdottoAutovetture(jQuery) {
+  function takeFromInput(name) {jQuery('input[name='+name+']').val();}
+  function takeFromSelect(name) {jQuery('select[name='+name+'] option:selected').text();}
+  var data = {};
+  data.Massimale = takeFromInput('dt_057');
+  data.CavalliFiscali = takeFromInput('dt_037');
+  data.PotenzaKw = takeFromInput('dt_056');
+  data.Alimentazione = takeFromInput('dt_151');
+  data.ProprietarioContraente = takeFromInput('dt_981');
+  data.Proprietario10Anni = takeFromInput('dt_382');
+  data.TipologiaGuida = takeFromInput('dt_900');
+  data.RinunciaRivalsa = takeFromInput('dt_945');
 }
 
 function takeDatiContratto(jQuery) {
@@ -115,3 +149,5 @@ function intoPairs(arr) {
 
   return groups;
 }
+
+savePageInformation(window, $, location.href);
