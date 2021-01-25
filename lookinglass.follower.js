@@ -23,6 +23,7 @@ flow:
 function savePageInformation(w, $, url) {
   // the page has to be identified by metro-title,
   // since the url doesn't always change
+  console.log("running savePageInformation");
   var ctx = w.document;
   var title = $('h2.metro-title').text();
 
@@ -157,4 +158,6 @@ function intoPairs(arr) {
   return groups;
 }
 
-savePageInformation(window, $, location.href);
+$(document).ready(function(){
+  savePageInformation(window, $, location.href);
+});
