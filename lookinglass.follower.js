@@ -34,15 +34,11 @@ function savePageInformation(w, $, url) {
   });
 
   // assuming all submit buttons are called "Prosegui"
-  $("a:contains('Prosegui')", ctx).click(function(e) {
+  $("a:contains('Prosegui')", window.document).click(function(e) {
     var info = takeSwitch(title, $);
     console.log(info);
-    w.sessionStorage.setItem(title+'-information', JSON.stringify(info));
-    e.preventDefault();
-    confirm('Ya sure?');
-    return true;
+    window.sessionStorage.setItem(title+'-information', "THISSSS"+JSON.stringify(info));
   });
-
 }
 
 function takeSwitch(title, $) {
