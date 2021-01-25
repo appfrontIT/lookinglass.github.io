@@ -35,32 +35,38 @@ function savePageInformation(w, $, url) {
 
   // assuming all submit buttons are called "Prosegui"
   $("a:contains('Prosegui')", ctx).click(function(e) {
-    var info;
-    switch(title) {
-      case 'Elenco Garanzie':
-        info = intoPairs(allCheckedBoxes($));
-      case 'Dati Anagrafici':
-        info = intoPairs(allFormFieldsText($));
-      case 'Questionario':
-        info = ["not implemented"];
-      case 'Dati Contratto':
-        info = takeDatiContratto($);
-      case 'Attestato di rischio':
-        if(url.includes('attestatoRischioFr.do')){
-          info = takeAttestatoDiRischioSummary($);
-        } else {
-          info = takeAttestatoDiRischio($);
-        }
-      case 'Prodotto AUTOVETTURE':
-        if($("td:contains('GARANZIA PRESTATA')").length == 0) {
-          info = takeProdottoAutovetture($);
-        }
-      default:
-        info = {};
-    }
+    var info = takeSwitch(title, $);
+    console.log(info);
     w.sessionStorage.setItem(title+'-information', JSON.stringify(info));
   });
 
+}
+
+function takeSwitch(title, $) {
+  console.log(title);
+  switch(title) {
+    case 'Elenco Garanzie':
+      return intoPairs(allCheckedBoxes($));
+    case 'Dati Anagrafici':
+      return intoPairs(allFormFieldsText($));
+    case 'Questionario':
+      return ["not implemented"];
+    case 'Dati Contratto':
+      return takeDatiContratto($);
+    case 'Attestato di rischio':
+      if(url.includes('attestatoRischioFr.do')){
+        return takeAttestatoDiRischioSummary($);
+      } else {
+        return takeAttestatoDiRischio($);
+      }
+    case 'Prodotto AUTOVETTURE':
+      if($("td:contains('GARANZIA PRESTATA')").length == 0) {
+        return takeProdottoAutovetture($);
+      } else
+        return {};
+    default:
+      return {};
+  }
 }
 
 function takeAttestatoDiRischio(jQuery) {
