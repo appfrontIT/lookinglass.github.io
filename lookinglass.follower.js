@@ -34,7 +34,7 @@ function savePageInformation(w, $, url) {
   });
 
   // assuming all submit buttons are called "Prosegui"
-  $("a:contains('Prosegui')", w.document).click(function(e) {
+  $("a:contains('Prosegui')").click(function(e) {
     var info = takeSwitch(title, $);
     console.log(info);
     alert("info");
