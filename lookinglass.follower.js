@@ -71,7 +71,7 @@ function takeSwitch(title, $) {
 function isTextOnPage(str) {
   return (
     document.documentElement.textContent || document.documentElement.innerText
-  ).indexOf('Done successfuly') > -1
+  ).indexOf(str) > -1
 }
 
 function takeAttestatoDiRischio(jQuery) {
