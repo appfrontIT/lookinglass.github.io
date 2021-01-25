@@ -53,10 +53,10 @@ function takeSwitch(title, $) {
     case 'Dati Contratto':
       return takeDatiContratto($);
     case 'Attestato di rischio':
-      if(url.includes('attestatoRischioFr.do')){
-        return takeAttestatoDiRischioSummary($);
-      } else {
+      if(isTextOnPage('Polizza di riferimento Dallbogg')){
         return takeAttestatoDiRischio($);
+      } else {
+        return takeAttestatoDiRischioSummary($);
       }
     case 'Prodotto AUTOVETTURE':
       if($("td:contains('GARANZIA PRESTATA')").length == 0) {
@@ -66,6 +66,12 @@ function takeSwitch(title, $) {
     default:
       return {};
   }
+}
+
+function isTextOnPage(str) {
+  return (
+    document.documentElement.textContent || document.documentElement.innerText
+  ).indexOf('Done successfuly') > -1
 }
 
 function takeAttestatoDiRischio(jQuery) {
