@@ -39,6 +39,7 @@ function savePageInformation(w, $, url) {
     console.log(info);
     alert("info");
     w.sessionStorage.setItem(title+'-information', JSON.stringify(info));
+    return false;
   });
 }
 
