@@ -69,7 +69,7 @@ function takeSwitch(title, $) {
 }
 
 function takeAttestatoDiRischio(jQuery) {
-  function takeFromInput(name) {jQuery('input[name='+name+']').val();}
+  function takeFromInput(name) {return jQuery('input[name='+name+']').val();}
   var data = {};
   data.siglaTarga = takeFromInput('siglaTarga');
   data.numTarga = takeFromInput('numTarga');
@@ -82,7 +82,7 @@ function takeAttestatoDiRischio(jQuery) {
 }
 
 function takeAttestatoDiRischioSummary(jQuery) {
-  function takeFromSelect(name) {jQuery('select[name='+name+'] option:selected').text();}
+  function takeFromSelect(name) {return jQuery('select[name='+name+'] option:selected').text();}
   var data = {};
   data.compagniaProv = takeFromSelect('compagniaProv');
   var tmp = {};
@@ -95,8 +95,8 @@ function takeAttestatoDiRischioSummary(jQuery) {
 }
 
 function takeProdottoAutovetture(jQuery) {
-  function takeFromInput(name) {jQuery('input[name='+name+']').val();}
-  function takeFromSelect(name) {jQuery('select[name='+name+'] option:selected').text();}
+  function takeFromInput(name) {return jQuery('input[name='+name+']').val();}
+  function takeFromSelect(name) {return jQuery('select[name='+name+'] option:selected').text();}
   var data = {};
   data.Massimale = takeFromInput('dt_057');
   data.CavalliFiscali = takeFromInput('dt_037');
@@ -109,8 +109,8 @@ function takeProdottoAutovetture(jQuery) {
 }
 
 function takeDatiContratto(jQuery) {
-  function takeFromInput(name) {jQuery('input[name='+name+']').val();}
-  function takeFromSelect(name) {jQuery('select[name='+name+'] option:selected').text();}
+  function takeFromInput(name) {return jQuery('input[name='+name+']').val();}
+  function takeFromSelect(name) {return jQuery('select[name='+name+'] option:selected').text();}
   var data = {};
   data.Decorrenza = takeFromInput('dataDecor');
   data.Ora = takeFromInput('oraDecor');
