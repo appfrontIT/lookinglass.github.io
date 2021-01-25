@@ -37,10 +37,7 @@ function savePageInformation(w, $, url) {
   // assuming all submit buttons are called "Prosegui"
   $("a:contains('Prosegui')").click(function(e) {
     var info = takeSwitch(title, $);
-    console.log(info);
-    alert("info");
     w.sessionStorage.setItem(title+'-information', JSON.stringify(info));
-    return false;
   });
 }
 
