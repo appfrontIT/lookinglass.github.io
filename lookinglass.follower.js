@@ -158,7 +158,7 @@ function takeRiepilogoGaranzie($) {
   }
 
   var data = {};
-  data.Tabella = $('form[name=form0] tr').toArray().slice(1,8).map(child);
+  data.Tabella = $('form[name=form0] tr').toArray().slice(2,8).map(child);
   data.Totale = $("td.labelB:contains('Totale')").next().text();
   return data;
 }
