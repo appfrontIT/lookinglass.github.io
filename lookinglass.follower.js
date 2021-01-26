@@ -43,6 +43,8 @@ function savePageInformation(w, $, url) {
     $("a:contains('Prosegui')").click(function(e) {
       var info = takeSwitch(title, $);
       var jsonObj = makePage(w, title, timestamp.toISOString(), info);
+      if(w.sessionStorage.getItem("pagina - " + title) !== null)
+        title = title + " 2";
       w.sessionStorage.setItem("pagina - " + title, JSON.stringify(jsonObj));
     });
   }
