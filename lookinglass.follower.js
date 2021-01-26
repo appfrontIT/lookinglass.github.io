@@ -36,6 +36,8 @@ function savePageInformation(w, $, url) {
     $("a.linkball").last().click(function(e) {
       var info = takeProdottoAutovetture($);
       var jsonObj = makePage(w, title, timestamp.toISOString(), info);
+      if(w.sessionStorage.getItem("pagina - " + title) !== null)
+        title = title + " 2";
       w.sessionStorage.setItem("pagina - " + title, JSON.stringify(jsonObj));
     });
   } else {
@@ -138,7 +140,7 @@ function takeQuestionario($) {
 function takeRiepilogoGaranzie($) {
   // function takeFromInput(name) {return $('input[name='+name+']').val();}
   function child(x) {
-    var tds = $(x).children();
+    var tds = $(x).children('td.alternate');
     var chbx = tds[0].firstChild;
     var data = {};
 
