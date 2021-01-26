@@ -151,7 +151,7 @@ function takeRiepilogoGaranzie($) {
     data.Oggetto = tds[2].innerText;
     data.Premio = tds[3].innerText;
     data.Sconto = tds[4].firstElementChild.value;
-    if(tds[5])
+    if(tds[5].firstElementChild)
       data.PremioLibero = tds[5].firstElementChild.value;
 
     return data;
