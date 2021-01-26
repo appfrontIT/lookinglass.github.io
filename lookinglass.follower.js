@@ -224,7 +224,7 @@ function takeAttestatoDiRischioSummary($) {
 function takeProdottoAutovetture($) {
   function takeFromInput(name) {return $('input[name='+name+']').val();}
   function takeTextNextTo(label) {
-    return $("td.formleft:contains('"+label+"')").next().get(0).innerText;
+    return $("td.formleft:contains('"+label+"')").next().get(0).innerText.trim();
   }
   var data = {};
   if($(".labelB").first().next().text().trim() === "ASSISTENZA AUTO GOLD") {
@@ -241,13 +241,13 @@ function takeProdottoAutovetture($) {
   data.CapIntestatarioPra = takeTextNextTo('CAP INTESTATARIO PRA');
   data.PotenzaKw = takeFromInput('dt_056');
   data.Alimentazione = takeFromInput('dt_151');
-  data.EtaVeicolo = takeTextNextTo("ETA' DEL VEICOLO (IN MESI)");
-  data.ClasseImpresa = takeTextNextTo("CLASSE DI B/M DELL'IMPRESA");
+  data.EtaVeicolo = takeTextNextTo('ETA\' DEL VEICOLO (IN MESI)');
+  data.ClasseImpresa = takeTextNextTo('CLASSE DI B/M DELL'IMPRESA');
   data.ProprietarioContraente = takeFromInput('dt_981');
   data.Proprietario10Anni = takeFromInput('dt_382');
   data.TipologiaGuida = takeFromInput('dt_900');
-  data.NumSinistriInAdr = takeTextNextTo("NUM. SINISTRI IN ADR");
-  data.AnniConsecutivi = takeTextNextTo("ANNI CONSECUTIVI SENZA SX");
+  data.NumSinistriInAdr = takeTextNextTo('NUM. SINISTRI IN ADR');
+  data.AnniConsecutivi = takeTextNextTo('ANNI CONSECUTIVI SENZA SX');
   data.RinunciaRivalsa = takeFromInput('dt_945');
   data.PremioNetto = $("td.labelB").last().text().substring(6);
 
