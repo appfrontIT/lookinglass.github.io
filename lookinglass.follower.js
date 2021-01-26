@@ -235,7 +235,7 @@ function getSessionIdFromCookies() {
 }
 
 $(document).ready(function(){
-  if(w.location.pathname === "/prodGrpList.do") {
+  if(window.location.pathname === "/prodGrpList.do") {
     saveInitialPageInformation(window);
   }
   // adds listeners after each page loads
