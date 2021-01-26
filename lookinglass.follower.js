@@ -26,6 +26,8 @@ function saveInitialPageInformation(w) {
   w.sessionStorage.setItem('TimestampISO', (new Date()).toISOString());
 }
 
+const paginaPrefix = "pagina - ";
+
 function savePageInformation(w, $, url) {
   // the page has to be identified by metro-title,
   // since the url doesn't always change
@@ -36,22 +38,22 @@ function savePageInformation(w, $, url) {
     $("a.linkball").last().click(function(e) {
       var info = takeProdottoAutovetture($);
       var jsonObj = makePage(w, title, timestamp.toISOString(), info);
-      if(w.sessionStorage.getItem("pagina - " + title) !== null)
+      if(w.sessionStorage.getItem(paginaPrefix + title) !== null)
         title = title + " 2";
-      w.sessionStorage.setItem("pagina - " + title, JSON.stringify(jsonObj));
+      w.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
     });
   } else if(title === 'Riepilogo') {
     var info = takeRiepilogoGenerale($);
     var jsonObj = makePage(w, title, timestamp.toISOString(), info);
-    w.sessionStorage.setItem("pagina - " + title, JSON.stringify(jsonObj));
+    w.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
   } else {
     // assuming all other submit buttons are called "Prosegui"
     $("a:contains('Prosegui')").click(function(e) {
       var info = takeSwitch(title, $);
       var jsonObj = makePage(w, title, timestamp.toISOString(), info);
-      if(w.sessionStorage.getItem("pagina - " + title) !== null)
+      if(w.sessionStorage.getItem(paginaPrefix + title) !== null)
         title = title + " 2";
-      w.sessionStorage.setItem("pagina - " + title, JSON.stringify(jsonObj));
+      w.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
     });
   }
 
@@ -348,6 +350,27 @@ function getSessionIdFromCookies() {
   .split('; ')
   .find(row => row.startsWith('JSESSIONID'))
   .split('=')[1];
+}
+
+function save(w) {
+  var generalFields = Object.fromEntries(['User', 'SessionID', 'TimestampISO'].map(function(x){
+    return [x, w.sessionStorage.getItem(x)];
+  }));
+
+  var pages = [
+    'Elenco Garanzie',
+    'Dati Anagrafici',
+    'Questionario',
+    'Dati Contratto',
+    'Attestato di Rischio', 'Attestato di Rischio 2',
+    'Riepilogo Garanzie', 'Riepilogo Garanzie 2',
+    'Prodotto AUTOVETTURE', 'Prodotto AUTOVETTURE 2',
+    'Prodotto AUTOVETTURE - Dati Integrativi',
+    'Riepilogo'].map(function(x){
+    return JSON.parse(w.sessionStorage.getItem(paginaPrefix + x));
+  });
+
+  return Object.assign(generalFields, {"pagine": pages});
 }
 
 $(document).ready(function(){
