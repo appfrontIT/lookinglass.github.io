@@ -140,7 +140,7 @@ function takeQuestionario($) {
 function takeRiepilogoGaranzie($) {
   // function takeFromInput(name) {return $('input[name='+name+']').val();}
   function child(x) {
-    var tds = $(x).children('td.alternate');
+    var tds = $(x).children();
     var chbx = tds[0].firstChild;
     var data = {};
 
