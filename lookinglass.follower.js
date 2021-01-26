@@ -242,7 +242,7 @@ function takeProdottoAutovetture($) {
   data.PotenzaKw = takeFromInput('dt_056');
   data.Alimentazione = takeFromInput('dt_151');
   data.EtaVeicolo = takeTextNextTo('ETA\' DEL VEICOLO (IN MESI)');
-  data.ClasseImpresa = takeTextNextTo('CLASSE DI B/M DELL'IMPRESA');
+  data.ClasseImpresa = takeTextNextTo('CLASSE DI B/M DELL\'IMPRESA');
   data.ProprietarioContraente = takeFromInput('dt_981');
   data.Proprietario10Anni = takeFromInput('dt_382');
   data.TipologiaGuida = takeFromInput('dt_900');
