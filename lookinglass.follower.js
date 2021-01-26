@@ -44,6 +44,7 @@ function savePageInformation(w, $, url) {
       var info = takeSwitch(title, $);
       var jsonObj = makePage(w, title, timestamp.toISOString(), info);
       w.sessionStorage.setItem("pagina - " + title, JSON.stringify(jsonObj));
+      alert("saved!");
     });
   }
 
