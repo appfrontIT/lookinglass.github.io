@@ -95,7 +95,7 @@ function takeSwitch(title, $) {
 
 function takeDatiIntegrativi($) {
   function takeTextNextTo(label) {
-    return $("td.formleft:contains('"+label+"')").next().get(0).innerText;
+    return $("td.formleft:contains('"+label+"')").next().get(0).innerText || $("td.formLeft:contains('"+label+"')").next().get(0).innerText;
   }
   var data = {};
 
