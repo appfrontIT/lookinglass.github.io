@@ -241,8 +241,9 @@ function takeProdottoAutovetture($) {
   data.CapIntestatarioPra = takeTextNextTo('CAP INTESTATARIO PRA');
   data.PotenzaKw = takeFromInput('dt_056');
   data.Alimentazione = takeFromInput('dt_151');
-  data.EtaVeicolo = takeTextNextTo('ETA\' DEL VEICOLO (IN MESI)');
-  data.ClasseImpresa = takeTextNextTo('CLASSE DI B/M DELL\'IMPRESA');
+  // apostrophs removed
+  data.EtaVeicolo = takeTextNextTo('DEL VEICOLO (IN MESI)');
+  data.ClasseImpresa = takeTextNextTo('CLASSE DI B/M DELL');
   data.ProprietarioContraente = takeFromInput('dt_981');
   data.Proprietario10Anni = takeFromInput('dt_382');
   data.TipologiaGuida = takeFromInput('dt_900');
