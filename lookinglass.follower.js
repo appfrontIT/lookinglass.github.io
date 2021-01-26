@@ -106,7 +106,7 @@ function takeDatiIntegrativi($) {
   data.TargaVeicolo = takeTextNextTo('TARGA VEICOLO');
   data.PotenzaKw = takeTextNextTo('POTENZA KW (P.2)');
   data.CodiceFiscale = takeTextNextTo('COD.FISCALE INT. PRA');
-  data.Nominativo = takeTextNextTo('NOMINATIVO INT. PRA');
+  data.Nominativo = takeTextNextTo('NOMINATIVO  INT. PRA');
   data.ComuneIntPra = takeTextNextTo('COMUNE INT. PRA');
   data.ProvinciaIntPra = takeTextNextTo('PROVINCIA INT. PRA');
 
