@@ -31,7 +31,7 @@ function savePageInformation(w, $, url) {
   // since the url doesn't always change
   var title = $('h2.metro-title').text().trim();
   var timestamp = new Date();
-  local.log("running " + title);
+  console.log("running " + title);
   if(title == "Prodotto AUTOVETTURE") {
     $("a.linkball").last().click(function(e) {
       var info = takeProdottoAutovetture($);
