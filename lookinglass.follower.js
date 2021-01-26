@@ -44,7 +44,6 @@ function savePageInformation(w, $, url) {
       var info = takeSwitch(title, $);
       var jsonObj = makePage(w, title, timestamp.toISOString(), info);
       w.sessionStorage.setItem("pagina - " + title, JSON.stringify(jsonObj));
-      alert("saved!");
     });
   }
 
@@ -131,7 +130,7 @@ function takeQuestionario($) {
   var trs = $('form[name=form0] tr').toArray();
   data.title = trs[1].firstChild.innerText;
   data.Tabella = $('form[name=form0] tr').toArray().slice(2,10).map(child);
-  data.CodiceAutorizzazione = takeFromInput('PN03_NUMERO_AUTOR');
+  data.CodiceAutorizzazione = $('input[name=PN03_NUMERO_AUTOR]').val();
   return data;
 
 }
