@@ -19,36 +19,52 @@ flow:
   - matriceGaranzie.do?_PWUo_=RSi (Riepilogo Garanzie)
   -
  */
+function saveInitialPageInformation(w) {
+  w.sessionStorage.setItem('User', "[not implemented]");
+  w.sessionStorage.setItem('SessionID', "[not implemented]");
+  w.sessionStorage.setItem('TimestampISO', Date.now().toISOString());
+}
 
 function savePageInformation(w, $, url) {
   // the page has to be identified by metro-title,
   // since the url doesn't always change
-  console.log("running savePageInformation");
-  var ctx = w.document;
   var title = $('h2.metro-title').text();
-
-  w.sessionStorage.setItem('timestamp_'+ title, Date.now());
-  var clickedStuff = [];
-
-  $(ctx).click(function(e) {
-    clickedStuff.push($(e.target).text());
-  });
+  var timestamp = Date.now();
 
   // assuming all submit buttons are called "Prosegui"
   $("a:contains('Prosegui')").click(function(e) {
     var info = takeSwitch(title, $);
-    w.sessionStorage.setItem(title+'-information', JSON.stringify(info));
+    var jsonObj = makePage(w, title, timestamp.toISOString(), info);
+    w.sessionStorage.setItem("pag" + pageNumber(w), JSON.stringify(jsonObj));
   });
+}
+function pageNumber(w) {
+  return w.sessionStorage.length - 3 + 1
+}
+function makePage(w, title, time, info, param1) {
+  var data = {};
+  data.url = w.location.href;
+  data.inizio = time;
+  data.classePagina = w.location.pathname.substring(1);
+  data.sottoClassePagina = title;
+  if(data.classePagina === "garanzieList.do") {
+    data.codprod = getParameterByName('codprod');
+  }
+  if(data.classePagina === "prodList.do") {
+    data.codgruppo = getParameterByName('codgruppo');
+  }
+  data.form = info;
+  return data;
 }
 
 function takeSwitch(title, $) {
   switch(title) {
     case 'Elenco Garanzie':
-      return intoPairs(allCheckedBoxes($));
+      return takeElencoGaranzie($);
     case 'Dati Anagrafici':
-      return intoPairs(allFormFieldsText($));
+      return Object.fromEntries(intoPairs(allFormFieldsText($)));
     case 'Questionario':
-      return ["not implemented"];
+      return takeQuestionario($);
     case 'Dati Contratto':
       return takeDatiContratto($);
     case 'Attestato di Rischio':
@@ -67,14 +83,57 @@ function takeSwitch(title, $) {
   }
 }
 
-function isTextOnPage(str) {
-  return (
-    document.documentElement.textContent || document.documentElement.innerText
-  ).indexOf(str) > -1
+function takeQuestionario($) {
+  function child(x, idx) {
+    var data = {};
+    var tds = $(x).children();
+    if(idx%2==0) {
+        data.label = tds[0].innerText;
+        data.checkboxes = $(tds[1]).children().toArray().map(function(x){
+          return {
+            "id": x.id,
+            "name": x.name,
+            "value": x.value,
+          };
+        }).filter(function(x){ return x.id != ""});
+    }
+    return data;
+  }
+
+  var data = {};
+  var trs = $('form[name=form0] tr').toArray();
+  data.title = trs[1].firstChild.innerText;
+  data.Tabella = $('form[name=form0] tr').toArray().slice(2,10).map(child);
+  data.CodiceAutorizzazione = takeFromInput('PN03_NUMERO_AUTOR');
+  return data;
+
 }
 
-function takeAttestatoDiRischio(jQuery) {
-  function takeFromInput(name) {return jQuery('input[name='+name+']').val();}
+function takeElencoGaranzie($) {
+  function takeFromInput(name) {return $('input[name='+name+']').val();}
+  function child(x) {
+    var tds = $(x).children();
+    var chbx = tds[0].firstChild;
+    var data = {};
+
+    data.Sel = chbx.checked;
+    data.name = chbx.name;
+    data.id = chbx.id;
+    data.Garanzia = tds[1].innerText;
+    data.Oggetto = tds[2].innerText;
+
+    return data;
+  }
+
+  var data = {};
+  data.Tabella = $('form[name=form0] tr').toArray().slice(1,8).map(child);
+  data.CodiceAutorizzazione = takeFromInput('PN03_NUMERO_AUTOR');
+  return data;
+
+}
+
+function takeAttestatoDiRischio($) {
+  function takeFromInput(name) {return $('input[name='+name+']').val();}
   var data = {};
   data.siglaTarga = takeFromInput('siglaTarga');
   data.numTarga = takeFromInput('numTarga');
@@ -86,8 +145,8 @@ function takeAttestatoDiRischio(jQuery) {
   return data;
 }
 
-function takeAttestatoDiRischioSummary(jQuery) {
-  function takeFromSelect(name) {return jQuery('select[name='+name+'] option:selected').text();}
+function takeAttestatoDiRischioSummary($) {
+  function takeFromSelect(name) {return $('select[name='+name+'] option:selected').text();}
   var data = {};
   data.compagniaProv = takeFromSelect('compagniaProv');
   var tmp = {};
@@ -99,9 +158,9 @@ function takeAttestatoDiRischioSummary(jQuery) {
   return data;
 }
 
-function takeProdottoAutovetture(jQuery) {
-  function takeFromInput(name) {return jQuery('input[name='+name+']').val();}
-  function takeFromSelect(name) {return jQuery('select[name='+name+'] option:selected').text();}
+function takeProdottoAutovetture($) {
+  function takeFromInput(name) {return $('input[name='+name+']').val();}
+  function takeFromSelect(name) {return $('select[name='+name+'] option:selected').text();}
   var data = {};
   data.Massimale = takeFromInput('dt_057');
   data.CavalliFiscali = takeFromInput('dt_037');
@@ -113,9 +172,9 @@ function takeProdottoAutovetture(jQuery) {
   data.RinunciaRivalsa = takeFromInput('dt_945');
 }
 
-function takeDatiContratto(jQuery) {
-  function takeFromInput(name) {return jQuery('input[name='+name+']').val();}
-  function takeFromSelect(name) {return jQuery('select[name='+name+'] option:selected').text();}
+function takeDatiContratto($) {
+  function takeFromInput(name) {return $('input[name='+name+']').val();}
+  function takeFromSelect(name) {return $('select[name='+name+'] option:selected').text();}
   var data = {};
   data.Decorrenza = takeFromInput('dataDecor');
   data.Ora = takeFromInput('oraDecor');
@@ -137,17 +196,25 @@ function takeDatiContratto(jQuery) {
   return data;
 }
 
-
-function allFormFieldsText(jQuery) {
-  return jQuery('tr > td.formleft, tr > td.label')
-    .toArray()
-    .map(function(x){ return x.innerText; });
+function isTextOnPage(str) {
+  return (
+    document.documentElement.textContent || document.documentElement.innerText
+  ).indexOf(str) > -1
 }
 
-function allCheckedBoxes(jQuery) {
-  return jQuery('.formleft > input[type=checkbox]:checked')
-    .parent().siblings().toArray()
-    .map(function(x){ return x.innerText; })
+function getParameterByName(name, url = window.location.href) {
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+function allFormFieldsText($) {
+  return $('tr > td.formleft, tr > td.label')
+    .toArray()
+    .map(function(x){ return x.innerText; });
 }
 
 function intoPairs(arr) {
@@ -161,5 +228,9 @@ function intoPairs(arr) {
 }
 
 $(document).ready(function(){
+  if(w.location.pathname === "/prodGrpList.do") {
+    saveInitialPageInformation(window);
+  }
+  // adds listeners after each page loads
   savePageInformation(window, $, location.href);
 });
