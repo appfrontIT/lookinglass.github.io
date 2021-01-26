@@ -206,7 +206,7 @@ function takeAttestatoDiRischioSummary($) {
   data.FormaTariffaria = takeTextNextTo('Forma tariffaria');
   data.ClasseProvenienzaCU = takeTextNextTo('Classe provenienza CU');
   data.ClasseAssegnazioneCU = takeTextNextTo('Classe assegn. CU');
-  data.ClasseImpresa = takeTextNextTo('Classe impresa');
+  data.ClasseImpresa = takeTextNextTo('Classe Impresa');
   data.Pejus = takeTextNextTo('Pejus');
   data.NumSinistri12Mesi = takeTextNextTo('Numero sinistri 12 mesi');
   data.DataScadenzaContratto = takeTextNextTo('Data scadenza contratto');
