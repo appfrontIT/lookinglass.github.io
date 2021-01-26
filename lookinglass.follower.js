@@ -52,9 +52,7 @@ function savePageInformation(w, $, url) {
   }
 
 }
-// function pageNumber(w) {
-//   return w.sessionStorage.length - 3 + 1
-// }
+
 function makePage(w, title, time, info, param1) {
   var data = {};
   data.url = w.location.href;
@@ -91,9 +89,32 @@ function takeSwitch(title, $) {
       return takeRiepilogoGaranzie($);
     case 'Prodotto AUTOVETTURE - Dati Integrativi':
       return takeDatiIntegrativi($);
+    case 'Riepilogo':
+      return takeRiepilogoGenerale($);
     default:
+      console.error("Some Unknown page!")
       return {};
   }
+}
+
+function takeRiepilogoGenerale($) {
+  function takeFromSelect(name) {return $('select[name='+name+'] option:selected').text();}
+  var generale = Object.fromEntries(
+    $('td.formLeft').map(function(_i,x){
+      return [[$(x).text().slice(0,-1),$(x).next().text()]];
+    })
+    .toArray()
+  );
+  var rate = Object.fromEntries(
+    $('td.formleft').slice(1,8).map(function(_i,x){
+      var sibs = $(x).siblings();
+      return [[$(x).text(),[sibs[0].innerText, sibs[1].innerText]]];
+    }).toArray()
+  );
+  var data = Object.assign(generale, rate);
+  data.Frazionamento = $('select[name=fraz] option:selected').text();
+  data.ScadenzaRata = $("td.formleft:contains('Scadenza Rata')").next().get(0).innerText;
+  return data;
 }
 
 function takeDatiIntegrativi($) {
