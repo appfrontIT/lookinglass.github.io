@@ -272,7 +272,7 @@ function takeDatiContratto($) {
   data.CodiceAutorizzazione =  takeTextNextTo('Codice Autorizzazione');
    // formLeft
   data.PolizzaIndicizzata = $("td.formLeft:contains('Polizza indicizzata')").next().get(0).innerText;
-  data.NuovoAttestato = takeTextNextTo('Nuovo attestato');
+  data.NuovoAttestato = takeTextNextTo('Nuovo Attestato');
   data.NumeroTessera = takeFromInput('numTessera');
   data.CodiceProduttore = takeFromInput('codProduttore');
   data.Vincolo = takeFromInput('vincolo');
