@@ -20,6 +20,7 @@ flow:
   -
  */
 function saveInitialPageInformation(w) {
+  w.sessionStorage.clear();
   w.sessionStorage.setItem('User', w.localStorage.getItem('lookinglassUserID'));
   w.sessionStorage.setItem('SessionID', getSessionIdFromCookies());
   w.sessionStorage.setItem('TimestampISO', (new Date()).toISOString());
@@ -28,19 +29,28 @@ function saveInitialPageInformation(w) {
 function savePageInformation(w, $, url) {
   // the page has to be identified by metro-title,
   // since the url doesn't always change
-  var title = $('h2.metro-title').text();
+  var title = $('h2.metro-title').text().trim();
   var timestamp = new Date();
+  local.log("running " + title);
+  if(title == "Prodotto AUTOVETTURE") {
+    $("a.linkball").last().click(function(e) {
+      var info = takeProdottoAutovetture($);
+      var jsonObj = makePage(w, title, timestamp.toISOString(), info);
+      w.sessionStorage.setItem("pagina - " + title, JSON.stringify(jsonObj));
+    }
+  } else {
+    // assuming all other submit buttons are called "Prosegui"
+    $("a:contains('Prosegui')").click(function(e) {
+      var info = takeSwitch(title, $);
+      var jsonObj = makePage(w, title, timestamp.toISOString(), info);
+      w.sessionStorage.setItem("pagina - " + title, JSON.stringify(jsonObj));
+    });
+  }
 
-  // assuming all submit buttons are called "Prosegui"
-  $("a:contains('Prosegui')").click(function(e) {
-    var info = takeSwitch(title, $);
-    var jsonObj = makePage(w, title, timestamp.toISOString(), info);
-    w.sessionStorage.setItem("pag" + pageNumber(w), JSON.stringify(jsonObj));
-  });
 }
-function pageNumber(w) {
-  return w.sessionStorage.length - 3 + 1
-}
+// function pageNumber(w) {
+//   return w.sessionStorage.length - 3 + 1
+// }
 function makePage(w, title, time, info, param1) {
   var data = {};
   data.url = w.location.href;
@@ -73,14 +83,30 @@ function takeSwitch(title, $) {
       } else {
         return takeAttestatoDiRischioSummary($);
       }
-    case 'Prodotto AUTOVETTURE':
-      if($("td:contains('GARANZIA PRESTATA')").length == 0) {
-        return takeProdottoAutovetture($);
-      } else
-        return {};
+    case 'Riepilogo Garanzie':
+      return takeRiepilogoGaranzie($);
+    case 'Prodotto AUTOVETTURE - Dati Integrativi':
+      return takeDatiIntegrativi($);
     default:
       return {};
   }
+}
+
+function takeDatiIntegrativi($) {
+  function takeTextNextTo(label) {
+    return $("td.formleft:contains('"+label+"')").next().get(0).innerText;
+  }
+  var data = {};
+
+  data.DescrizioneVeicolo = $('input[name=dt_009]').val();
+  data.TargaVeicolo = takeTextNextTo('TARGA VEICOLO');
+  data.PotenzaKw = takeTextNextTo('POTENZA KW (P.2)');
+  data.CodiceFiscale = takeTextNextTo('COD.FISCALE INT. PRA');
+  data.Nominativo = takeTextNextTo('NOMINATIVO INT. PRA');
+  data.ComuneIntPra = takeTextNextTo('COMUNE INT. PRA');
+  data.ProvinciaIntPra = takeTextNextTo('PROVINCIA INT. PRA');
+
+  return data;
 }
 
 function takeQuestionario($) {
@@ -109,6 +135,32 @@ function takeQuestionario($) {
 
 }
 
+function takeRiepilogoGaranzie($) {
+  // function takeFromInput(name) {return $('input[name='+name+']').val();}
+  function child(x) {
+    var tds = $(x).children();
+    var chbx = tds[0].firstChild;
+    var data = {};
+
+    data.Sel = chbx.checked;
+    data.name = chbx.name;
+    data.id = chbx.id;
+    data.Garanzia = tds[1].innerText;
+    data.Oggetto = tds[2].innerText;
+    data.Premio = tds[3].innerText;
+    data.Sconto = tds[4].firstElementChild.value;
+    if(tds[5])
+      data.PremioLibero = tds[5].firstElementChild.value;
+
+    return data;
+  }
+
+  var data = {};
+  data.Tabella = $('form[name=form0] tr').toArray().slice(1,8).map(child);
+  data.Totale = $("td.labelB:contains('Totale')").next().text();
+  return data;
+}
+
 function takeElencoGaranzie($) {
   function takeFromInput(name) {return $('input[name='+name+']').val();}
   function child(x) {
@@ -129,7 +181,6 @@ function takeElencoGaranzie($) {
   data.Tabella = $('form[name=form0] tr').toArray().slice(1,8).map(child);
   data.CodiceAutorizzazione = takeFromInput('PN03_NUMERO_AUTOR');
   return data;
-
 }
 
 function takeAttestatoDiRischio($) {
@@ -147,8 +198,20 @@ function takeAttestatoDiRischio($) {
 
 function takeAttestatoDiRischioSummary($) {
   function takeFromSelect(name) {return $('select[name='+name+'] option:selected').text();}
+  function takeTextNextTo(label) {
+    return $("td.formleft:contains('"+label+"')").next().get(0).innerText;
+  }
   var data = {};
   data.compagniaProv = takeFromSelect('compagniaProv');
+  data.Targa = takeTextNextTo('Targa');
+  data.TipoEmissione = takeTextNextTo('Tipo Emissione');
+  data.FormaTariffaria = takeTextNextTo('Forma tariffaria');
+  data.ClasseProvenienzaCU = takeTextNextTo('Classe provenienza CU');
+  data.ClasseAssegnazioneCU = takeTextNextTo('Classe assegn. CU');
+  data.ClasseImpresa = takeTextNextTo('Classe impresa');
+  data.Pejus = takeTextNextTo('Pejus');
+  data.NumSinistri12Mesi = takeTextNextTo('Numero sinistri 12 mesi');
+  data.DataScadenzaContratto = takeTextNextTo('Data scadenza contratto');
   var tmp = {};
   $('input.input5').toArray().forEach(function(x){
     if(x.value!="")
@@ -160,21 +223,43 @@ function takeAttestatoDiRischioSummary($) {
 
 function takeProdottoAutovetture($) {
   function takeFromInput(name) {return $('input[name='+name+']').val();}
-  function takeFromSelect(name) {return $('select[name='+name+'] option:selected').text();}
+  function takeTextNextTo(label) {
+    return $("td.formleft:contains('"+label+"')").next().get(0).innerText;
+  }
   var data = {};
+  if($(".labelB").first().next().text().trim() === "ASSISTENZA AUTO GOLD") {
+    data.Garanzia = "ASSISTENZA AUTO GOLD";
+    data.Premio = $("td.labelB").last().text().substring(6);
+    return data;
+  }
+  data.ClassificazioneVeicolo = takeTextNextTo('CLASSIFICAZIONE VEICOLO');
   data.Massimale = takeFromInput('dt_057');
+  data.Eta = takeTextNextTo('ETA');
   data.CavalliFiscali = takeFromInput('dt_037');
+  data.TipoCliente = takeTextNextTo('TIPO CLIENTE');
+  data.ProvinciaTariffa = takeTextNextTo('PROVINCIA DI TARIFFA');
+  data.CapIntestatarioPra = takeTextNextTo('CAP INTESTATARIO PRA');
   data.PotenzaKw = takeFromInput('dt_056');
   data.Alimentazione = takeFromInput('dt_151');
+  data.EtaVeicolo = takeTextNextTo("ETA' DEL VEICOLO (IN MESI)");
+  data.ClasseImpresa = takeTextNextTo("CLASSE DI B/M DELL'IMPRESA");
   data.ProprietarioContraente = takeFromInput('dt_981');
   data.Proprietario10Anni = takeFromInput('dt_382');
   data.TipologiaGuida = takeFromInput('dt_900');
+  data.NumSinistriInAdr = takeTextNextTo("NUM. SINISTRI IN ADR");
+  data.AnniConsecutivi = takeTextNextTo("ANNI CONSECUTIVI SENZA SX");
   data.RinunciaRivalsa = takeFromInput('dt_945');
+  data.PremioNetto = $("td.labelB").last().text().substring(6);
+
+  return data;
 }
 
 function takeDatiContratto($) {
   function takeFromInput(name) {return $('input[name='+name+']').val();}
   function takeFromSelect(name) {return $('select[name='+name+'] option:selected').text();}
+  function takeTextNextTo(label) {
+    return $("td.formleft:contains('"+label+"')").next().get(0).innerText;
+  }
   var data = {};
   data.Decorrenza = takeFromInput('dataDecor');
   data.Ora = takeFromInput('oraDecor');
@@ -186,6 +271,9 @@ function takeDatiContratto($) {
   data.DurataGiorni = takeFromInput('durataGiorni');
   data.CodiceIntermediario = takeFromInput('codSubagente');
   data.CodiceConvenzione = takeFromSelect('codConvenzione');
+  data.CodiceAutorizzazione =  takeTextNextTo('Codice Autorizzazione');
+  data.PolizzaIndicizzata = takeTextNextTo('Polizza indicizzata');
+  data.NuovoAttestato = takeTextNextTo('Nuovo attestato');
   data.NumeroTessera = takeFromInput('numTessera');
   data.CodiceProduttore = takeFromInput('codProduttore');
   data.Vincolo = takeFromInput('vincolo');
@@ -201,6 +289,7 @@ function isTextOnPage(str) {
     document.documentElement.textContent || document.documentElement.innerText
   ).indexOf(str) > -1
 }
+
 
 function getParameterByName(name, url = window.location.href) {
     name = name.replace(/[\[\]]/g, '\\$&');
