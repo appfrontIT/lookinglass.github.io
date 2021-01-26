@@ -20,7 +20,7 @@ flow:
   -
  */
 function saveInitialPageInformation(w) {
-  w.sessionStorage.setItem('User', "[not implemented]");
+  w.sessionStorage.setItem('User', w.localStorage.getItem('lookinglassUserID'));
   w.sessionStorage.setItem('SessionID', getSessionIdFromCookies());
   w.sessionStorage.setItem('TimestampISO', Date.now().toISOString());
 }
