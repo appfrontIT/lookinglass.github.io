@@ -21,7 +21,7 @@ flow:
  */
 function saveInitialPageInformation(w) {
   w.sessionStorage.setItem('User', "[not implemented]");
-  w.sessionStorage.setItem('SessionID', "[not implemented]");
+  w.sessionStorage.setItem('SessionID', getSessionIdFromCookies());
   w.sessionStorage.setItem('TimestampISO', Date.now().toISOString());
 }
 
@@ -225,6 +225,13 @@ function intoPairs(arr) {
   }
 
   return groups;
+}
+
+function getSessionIdFromCookies() {
+  return document.cookie
+  .split('; ')
+  .find(row => row.startsWith('JSESSIONID'))
+  .split('=')[1];
 }
 
 $(document).ready(function(){
