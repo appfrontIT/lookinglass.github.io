@@ -128,11 +128,9 @@ function takeQuestionario($) {
 
   var data = {};
   var trs = $('form[name=form0] tr').toArray();
-  data.title = trs[1].firstChild.innerText;
-  data.Tabella = $('form[name=form0] tr').toArray().slice(2,10).map(child);
-  data.CodiceAutorizzazione = $('input[name=PN03_NUMERO_AUTOR]').val();
+  // data.title = trs[1].firstChild.innerText;
+  data.Tabella = $('form[name=form0] tr').toArray().slice(2,10).map(child).filter(function(x){ return x!={};});
   return data;
-
 }
 
 function takeRiepilogoGaranzie($) {
@@ -258,7 +256,7 @@ function takeDatiContratto($) {
   function takeFromInput(name) {return $('input[name='+name+']').val();}
   function takeFromSelect(name) {return $('select[name='+name+'] option:selected').text();}
   function takeTextNextTo(label) {
-    return $("td.formleft:contains('"+label+"')").next().get(0).innerText || $("td.formLeft:contains('"+label+"')").next().get(0).innerText;
+    return $("td.formleft:contains('"+label+"')").next().get(0).innerText;
   }
   var data = {};
   data.Decorrenza = takeFromInput('dataDecor');
