@@ -112,7 +112,8 @@ function takeRiepilogoGenerale($) {
   var rate = Object.fromEntries(
     $('td.formleft').slice(1,8).map(function(_i,x){
       var sibs = $(x).siblings();
-      return [[$(x).text(),[sibs[0].innerText, sibs[1].innerText]]];
+      var pair = [ncd(sibs[0].innerText), ncd(sibs[1].innerText)];
+      return [[$(x).text(), pair]];
     }).toArray()
   );
   var data = Object.assign(generale, rate);
@@ -174,7 +175,7 @@ function takeRiepilogoGaranzie($) {
     data.id = chbx.id;
     data.Garanzia = tds[1].innerText;
     data.Oggetto = tds[2].innerText;
-    data.Premio = tds[3].innerText;
+    data.Premio = ncd(tds[3].innerText);
     data.Sconto = tds[4].firstElementChild.value;
     if(tds[5].firstElementChild)
       data.PremioLibero = tds[5].firstElementChild.value;
@@ -256,7 +257,7 @@ function takeProdottoAutovetture($) {
   var data = {};
   if($(".labelB").first().next().text().trim() === "ASSISTENZA AUTO GOLD") {
     data.Garanzia = "ASSISTENZA AUTO GOLD";
-    data.Premio = $("td.labelB").last().text().substring(6);
+    data.Premio = ncd($("td.labelB").last().text().substring(6).trim());
     return data;
   }
   data.ClassificazioneVeicolo = takeTextNextTo('CLASSIFICAZIONE VEICOLO');
@@ -266,7 +267,7 @@ function takeProdottoAutovetture($) {
   data.TipoCliente = takeTextNextTo('TIPO CLIENTE');
   data.ProvinciaTariffa = takeTextNextTo('PROVINCIA DI TARIFFA');
   data.CapIntestatarioPra = takeTextNextTo('CAP INTESTATARIO PRA');
-  data.PotenzaKw = takeFromInput('dt_056');
+  data.PotenzaKw = ncd(takeFromInput('dt_056'));
   data.Alimentazione = takeFromInput('dt_151');
   // apostrophs removed
   data.EtaVeicolo = takeTextNextTo('DEL VEICOLO (IN MESI)');
@@ -277,7 +278,7 @@ function takeProdottoAutovetture($) {
   data.NumSinistriInAdr = takeTextNextTo('NUM. SINISTRI IN ADR');
   data.AnniConsecutivi = takeTextNextTo('ANNI CONSECUTIVI SENZA SX');
   data.RinunciaRivalsa = takeFromInput('dt_945');
-  data.PremioNetto = $("td.labelB").last().text().substring(6);
+  data.PremioNetto = ncd($("td.labelB").last().text().substring(6).trim());
 
   return data;
 }
@@ -343,6 +344,11 @@ function intoPairs(arr) {
   }
 
   return groups;
+}
+
+// for floats with commas
+function ncd(num) {
+  return parseFloat(num.replace(",", "."));
 }
 
 function getSessionIdFromCookies() {
