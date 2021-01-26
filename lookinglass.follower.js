@@ -37,7 +37,7 @@ function savePageInformation(w, $, url) {
       var info = takeProdottoAutovetture($);
       var jsonObj = makePage(w, title, timestamp.toISOString(), info);
       w.sessionStorage.setItem("pagina - " + title, JSON.stringify(jsonObj));
-    }
+    });
   } else {
     // assuming all other submit buttons are called "Prosegui"
     $("a:contains('Prosegui')").click(function(e) {
