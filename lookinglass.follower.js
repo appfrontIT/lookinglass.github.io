@@ -22,14 +22,14 @@ flow:
 function saveInitialPageInformation(w) {
   w.sessionStorage.setItem('User', w.localStorage.getItem('lookinglassUserID'));
   w.sessionStorage.setItem('SessionID', getSessionIdFromCookies());
-  w.sessionStorage.setItem('TimestampISO', Date.now().toISOString());
+  w.sessionStorage.setItem('TimestampISO', (new Date()).toISOString());
 }
 
 function savePageInformation(w, $, url) {
   // the page has to be identified by metro-title,
   // since the url doesn't always change
   var title = $('h2.metro-title').text();
-  var timestamp = Date.now();
+  var timestamp = new Date();
 
   // assuming all submit buttons are called "Prosegui"
   $("a:contains('Prosegui')").click(function(e) {
