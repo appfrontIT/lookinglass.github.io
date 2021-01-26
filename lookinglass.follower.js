@@ -40,6 +40,10 @@ function savePageInformation(w, $, url) {
         title = title + " 2";
       w.sessionStorage.setItem("pagina - " + title, JSON.stringify(jsonObj));
     });
+  } else if(title === 'Riepilogo') {
+    var info = takeRiepilogoGenerale($);
+    var jsonObj = makePage(w, title, timestamp.toISOString(), info);
+    w.sessionStorage.setItem("pagina - " + title, JSON.stringify(jsonObj));
   } else {
     // assuming all other submit buttons are called "Prosegui"
     $("a:contains('Prosegui')").click(function(e) {
@@ -89,8 +93,6 @@ function takeSwitch(title, $) {
       return takeRiepilogoGaranzie($);
     case 'Prodotto AUTOVETTURE - Dati Integrativi':
       return takeDatiIntegrativi($);
-    case 'Riepilogo':
-      return takeRiepilogoGenerale($);
     default:
       console.error("Some Unknown page!")
       return {};
