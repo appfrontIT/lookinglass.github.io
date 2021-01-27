@@ -133,7 +133,7 @@ function takeDatiIntegrativi($) {
 
   data.DescrizioneVeicolo = $('input[name=dt_009]').val();
   data.TargaVeicolo = takeTextNextTo('TARGA VEICOLO');
-  data.PotenzaKw = takeTextNextTo('POTENZA KW (P.2)');
+  data.PotenzaKw = parseInt(takeTextNextTo('POTENZA KW (P.2)'));
   data.CodiceFiscale = takeTextNextTo('COD.FISCALE INT. PRA');
   data.Nominativo = takeTextNextTo('NOMINATIVO');
   data.ComuneIntPra = takeTextNextTo('COMUNE');
@@ -153,6 +153,7 @@ function takeQuestionario($) {
             "id": x.id,
             "name": x.name,
             "value": x.value,
+            "checked": x.checked
           };
         }).filter(function(x){ return x.id != ""});
     }
@@ -267,7 +268,7 @@ function takeProdottoAutovetture($) {
   }
   data.ClassificazioneVeicolo = takeTextNextTo('CLASSIFICAZIONE VEICOLO');
   data.Massimale = takeFromInput('dt_057');
-  data.Eta = takeTextNextTo('ETA');
+  data.Eta = parseInt(takeTextNextTo('ETA'));
   data.CavalliFiscali = takeFromInput('dt_037');
   data.TipoCliente = takeTextNextTo('TIPO CLIENTE');
   data.ProvinciaTariffa = takeTextNextTo('PROVINCIA DI TARIFFA');
@@ -275,7 +276,7 @@ function takeProdottoAutovetture($) {
   data.PotenzaKw = ncd(takeFromInput('dt_056'));
   data.Alimentazione = takeFromInput('dt_151');
   // apostrophs removed
-  data.EtaVeicolo = takeTextNextTo('DEL VEICOLO (IN MESI)');
+  data.EtaVeicolo = parseInt(takeTextNextTo('DEL VEICOLO (IN MESI)'));
   data.ClasseImpresa = takeTextNextTo('CLASSE DI B/M DELL');
   data.ProprietarioContraente = takeFromInput('dt_981');
   data.Proprietario10Anni = takeFromInput('dt_382');
@@ -296,7 +297,7 @@ function takeDatiContratto($) {
   }
   var data = {};
   data.Decorrenza = takeFromInput('dataDecor');
-  data.Ora = takeFromInput('oraDecor');
+  data.Ora = parseInt(takeFromInput('oraDecor'));
   data.ScadenzaPolizza = takeFromInput('dataView1');
   data.Frazionamento = takeFromSelect('fraz')
   data.ScadenzaRata = takeFromSelect('scadRataC');
