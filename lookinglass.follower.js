@@ -35,6 +35,7 @@ function savePageInformation(w, $, url) {
   var timestamp = new Date();
   console.log("running " + title);
   if(title == "Prodotto AUTOVETTURE") {
+    // this works with the ( > ) button
     $("a.linkball").last().click(function(e) {
       var info = takeProdottoAutovetture($);
       var jsonObj = makePage(w, title, timestamp.toISOString(), info);
@@ -43,9 +44,11 @@ function savePageInformation(w, $, url) {
       w.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
     });
   } else if(title === 'Riepilogo') {
+    // ending action
     var info = takeRiepilogoGenerale($);
     var jsonObj = makePage(w, title, timestamp.toISOString(), info);
     w.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
+    sendToServer(w);
   } else {
     // assuming all other submit buttons are called "Prosegui"
     $("a:contains('Prosegui')").click(function(e) {
@@ -158,13 +161,11 @@ function takeQuestionario($) {
 
   var data = {};
   var trs = $('form[name=form0] tr').toArray();
-  // data.title = trs[1].firstChild.innerText;
   data.Tabella = $('form[name=form0] tr').toArray().slice(2,10).map(child).filter(function(x){ return x!={};});
   return data;
 }
 
 function takeRiepilogoGaranzie($) {
-  // function takeFromInput(name) {return $('input[name='+name+']').val();}
   function child(x) {
     var tds = $(x).children();
     var chbx = tds[0].firstChild;
@@ -176,16 +177,16 @@ function takeRiepilogoGaranzie($) {
     data.Garanzia = tds[1].innerText;
     data.Oggetto = tds[2].innerText;
     data.Premio = ncd(tds[3].innerText);
-    data.Sconto = tds[4].firstElementChild.value;
+    data.Sconto = ncd(tds[4].firstElementChild.value);
     if(tds[5].firstElementChild)
-      data.PremioLibero = tds[5].firstElementChild.value;
+      data.PremioLibero = ncd(tds[5].firstElementChild.value);
 
     return data;
   }
 
   var data = {};
   data.Tabella = $('form[name=form0] tr').toArray().slice(2,8).map(child);
-  data.Totale = $("td.labelB:contains('Totale')").next().text();
+  data.Totale = ncd($("td.labelB:contains('Totale')").next().text().trim());
   return data;
 }
 
@@ -249,6 +250,10 @@ function takeAttestatoDiRischioSummary($) {
   return data;
 }
 
+function takePremioNetto($) {
+  return ncd($("td.labelB").last().text().substring(7).trim());
+}
+
 function takeProdottoAutovetture($) {
   function takeFromInput(name) {return $('input[name='+name+']').val();}
   function takeTextNextTo(label) {
@@ -257,7 +262,7 @@ function takeProdottoAutovetture($) {
   var data = {};
   if($(".labelB").first().next().text().trim() === "ASSISTENZA AUTO GOLD") {
     data.Garanzia = "ASSISTENZA AUTO GOLD";
-    data.Premio = ncd($("td.labelB").last().text().substring(6).trim());
+    data.Premio = takePremioNetto($);
     return data;
   }
   data.ClassificazioneVeicolo = takeTextNextTo('CLASSIFICAZIONE VEICOLO');
@@ -276,9 +281,9 @@ function takeProdottoAutovetture($) {
   data.Proprietario10Anni = takeFromInput('dt_382');
   data.TipologiaGuida = takeFromInput('dt_900');
   data.NumSinistriInAdr = takeTextNextTo('NUM. SINISTRI IN ADR');
-  data.AnniConsecutivi = takeTextNextTo('ANNI CONSECUTIVI SENZA SX');
+  data.AnniConsecutivi = ncd(takeTextNextTo('ANNI CONSECUTIVI SENZA SX'));
   data.RinunciaRivalsa = takeFromInput('dt_945');
-  data.PremioNetto = ncd($("td.labelB").last().text().substring(6).trim());
+  data.PremioNetto = takePremioNetto($);
 
   return data;
 }
@@ -295,9 +300,9 @@ function takeDatiContratto($) {
   data.ScadenzaPolizza = takeFromInput('dataView1');
   data.Frazionamento = takeFromSelect('fraz')
   data.ScadenzaRata = takeFromSelect('scadRataC');
-  data.DurataAnni = takeFromInput('durataAnni');
-  data.DurataMesi = takeFromInput('durataMesi');
-  data.DurataGiorni = takeFromInput('durataGiorni');
+  data.DurataAnni = parseInt(takeFromInput('durataAnni'));
+  data.DurataMesi = parseInt(takeFromInput('durataMesi'));
+  data.DurataGiorni = parseInt(takeFromInput('durataGiorni'));
   data.CodiceIntermediario = takeFromInput('codSubagente');
   data.CodiceConvenzione = takeFromSelect('codConvenzione');
   data.CodiceAutorizzazione =  takeTextNextTo('Codice Autorizzazione');
@@ -369,14 +374,22 @@ function save(w) {
     'Questionario',
     'Dati Contratto',
     'Attestato di Rischio', 'Attestato di Rischio 2',
-    'Riepilogo Garanzie', 'Riepilogo Garanzie 2',
+    'Riepilogo Garanzie',
     'Prodotto AUTOVETTURE', 'Prodotto AUTOVETTURE 2',
     'Prodotto AUTOVETTURE - Dati Integrativi',
-    'Riepilogo'].map(function(x){
+    'Riepilogo'
+  ].map(function(x){
     return JSON.parse(w.sessionStorage.getItem(paginaPrefix + x));
   });
 
   return Object.assign(generalFields, {"pagine": pages});
+}
+
+function sendToServer(w) {
+  var jsonObject = save(w);
+  // $.post( url, jsonObject);
+  console.log(jsonObject);
+  w.sessionStorage.setItem('FullObject', JSON.stringify(jsonObject));
 }
 
 $(document).ready(function(){
