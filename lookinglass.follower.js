@@ -69,10 +69,10 @@ function makePage(w, title, time, info, param1) {
   data.classePagina = w.location.pathname.substring(1);
   data.sottoClassePagina = title;
   if(data.classePagina === "garanzieList.do") {
-    data.codprod = getParameterByName('codprod');
+    data.codprod = parseInt(getParameterByName('codprod'));
   }
   if(data.classePagina === "prodList.do") {
-    data.codgruppo = getParameterByName('codgruppo');
+    data.codgruppo = parseInt(getParameterByName('codgruppo'));
   }
   data.form = info;
   return data;
