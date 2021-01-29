@@ -105,9 +105,8 @@ function takeSwitch(title, $) {
 }
 
 function takeRiepilogoGenerale($) {
-  var tds = $('td.formLeft');
   var generale = Object.fromEntries(
-    tds.map(function(_i,x){
+    $('td.formLeft').map(function(_i,x){
       var j = {};
       j[$(x).text().slice(0,-1)] = $(x).next().text();
       return j;
@@ -115,11 +114,11 @@ function takeRiepilogoGenerale($) {
     .toArray()
   );
   var rate = Object.fromEntries(
-    tds.slice(1,8).map(function(_i,x){
+    $('td.formleft').toArray().slice(1,8).map(function(x){
       var sibs = $(x).siblings();
       var pair = [ncd(sibs[0].innerText), ncd(sibs[1].innerText)];
-      return [[$(x).text(), pair]];
-    }).toArray()
+      return [$(x).text(), pair];
+    })
   );
   var data = Object.assign(generale, rate);
   data.Frazionamento = $('select[name=fraz] option:selected').text();
@@ -365,7 +364,11 @@ function intoPairs(arr) {
 
 // for floats with commas
 function ncd(num) {
-  return parseFloat(num.replace(",", "."));
+  if(num.trim() === "") {
+    return 0;
+  } else {
+    return parseFloat(num.replace(".", "").replace(",", "."));
+  }
 }
 
 function getSessionIdFromCookies() {
