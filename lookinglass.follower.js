@@ -234,7 +234,7 @@ function takeAttestatoDiRischioSummary($) {
     return $("td.formleft:contains('"+label+"')").next().get(0).innerText;
   }
   function takeRow(label) {
-    $(label).toArray().map(function(x){
+    return $(label).toArray().map(function(x){
         var t = {};
         t[x.id] = x.value;
         return t;
@@ -360,7 +360,7 @@ function intoPairs(arr) {
     groups.push(arr.slice(i, i + 2));
   }
 
-  return groups;
+  return groups.map(function(x){ var t = {}; t[x[0]] = x[1]; return t;});
 }
 
 // for floats with commas
