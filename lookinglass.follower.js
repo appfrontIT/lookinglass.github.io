@@ -83,7 +83,7 @@ function takeSwitch(title, $) {
     case 'Elenco Garanzie':
       return takeElencoGaranzie($);
     case 'Dati Anagrafici':
-      return Object.fromEntries(intoPairs(allFormFieldsText($)));
+      return takeDatiAnagrafici($);
     case 'Questionario':
       return takeQuestionario($);
     case 'Dati Contratto':
@@ -108,7 +108,9 @@ function takeRiepilogoGenerale($) {
   function takeFromSelect(name) {return $('select[name='+name+'] option:selected').text();}
   var generale = Object.fromEntries(
     $('td.formLeft').map(function(_i,x){
-      return [[$(x).text().slice(0,-1),$(x).next().text()]];
+      var j = {};
+      j[$(x).text().slice(0,-1)] = $(x).next().text();
+      return j;
     })
     .toArray()
   );
@@ -336,14 +338,15 @@ function getParameterByName(name, url = window.location.href) {
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
-function allFormFieldsText($) {
-  return $('tr > td.formleft, tr > td.label')
+function takeDatiAnagrafici($) {
+  var arr = $('tr > td.formleft, tr > td.label')
     .toArray()
     .map(function(x){ return x.innerText; });
-}
 
-function takeDatiAnagrafici() {
-
+  var data = {};
+  data.DatiContraente = intoPairs(arr.slice(14));
+  data.DatiProprietario = intoPairs(arr.slice(15, 28));
+  return data;
 }
 
 function intoPairs(arr) {
