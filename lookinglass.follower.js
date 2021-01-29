@@ -105,9 +105,9 @@ function takeSwitch(title, $) {
 }
 
 function takeRiepilogoGenerale($) {
-  function takeFromSelect(name) {return $('select[name='+name+'] option:selected').text();}
+  var tds = $('td.formLeft');
   var generale = Object.fromEntries(
-    $('td.formLeft').map(function(_i,x){
+    tds.map(function(_i,x){
       var j = {};
       j[$(x).text().slice(0,-1)] = $(x).next().text();
       return j;
@@ -115,7 +115,7 @@ function takeRiepilogoGenerale($) {
     .toArray()
   );
   var rate = Object.fromEntries(
-    $('td.formleft').slice(1,8).map(function(_i,x){
+    tds.slice(1,8).map(function(_i,x){
       var sibs = $(x).siblings();
       var pair = [ncd(sibs[0].innerText), ncd(sibs[1].innerText)];
       return [[$(x).text(), pair]];
