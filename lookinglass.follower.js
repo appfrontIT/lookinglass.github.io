@@ -233,6 +233,13 @@ function takeAttestatoDiRischioSummary($) {
   function takeTextNextTo(label) {
     return $("td.formleft:contains('"+label+"')").next().get(0).innerText;
   }
+  function takeRow(label) {
+    $(label).toArray().map(function(x){
+        var t = {};
+        t[x.id] = x.value;
+        return t;
+    });
+  }
   var data = {};
   data.compagniaProv = takeFromSelect('compagniaProv');
   data.Targa = takeTextNextTo('Targa');
@@ -244,12 +251,9 @@ function takeAttestatoDiRischioSummary($) {
   data.Pejus = takeTextNextTo('Pejus');
   data.NumSinistri12Mesi = takeTextNextTo('Numero sinistri 12 mesi');
   data.DataScadenzaContratto = takeTextNextTo('Data scadenza contratto');
-  var tmp = {};
-  $('input.input5').toArray().forEach(function(x){
-    if(x.value!="")
-      tmp[x.name] = x.value;
-  });
-  data.input5 = tmp;
+  data.SinistriPagatiRespPrinc = takeRow('input[id^="sinPP"].input5');
+  data.SinistriPagatiRespParit = takeRow('input[id^="sinPU"].input5');
+  data.DettaglioSinistriPagati = takeRow('input[id^="dettPU"].input5');
   return data;
 }
 
