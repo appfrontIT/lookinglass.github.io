@@ -342,6 +342,10 @@ function allFormFieldsText($) {
     .map(function(x){ return x.innerText; });
 }
 
+function takeDatiAnagrafici() {
+
+}
+
 function intoPairs(arr) {
   var groups = [];
 
@@ -379,8 +383,8 @@ function save(w) {
     'Prodotto AUTOVETTURE', 'Prodotto AUTOVETTURE 2',
     'Prodotto AUTOVETTURE - Dati Integrativi',
     'Riepilogo'
-  ].map(function(x){
-    return JSON.parse(w.sessionStorage.getItem(paginaPrefix + x));
+  ].map(function(x, i){
+    return Object.assign(JSON.parse(w.sessionStorage.getItem(paginaPrefix + x)), {"id": i});
   });
 
   return Object.assign(generalFields, {"pagine": pages});
