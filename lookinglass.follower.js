@@ -19,20 +19,15 @@ flow:
   - matriceGaranzie.do?_PWUo_=RSi (Riepilogo Garanzie)
   -
  */
-function saveInitialPageInformation(w) {
-  w.sessionStorage.clear();
-  w.sessionStorage.setItem('User', w.localStorage.getItem('lookinglassUserID'));
-  w.sessionStorage.setItem('SessionID', getSessionIdFromCookies());
-  w.sessionStorage.setItem('TimestampISO', (new Date()).toISOString());
-}
+ /*jshint esversion: 6 */
 
-const paginaPrefix = "pagina - ";
+const paginaPrefix = "pagina - "; 
 
 function savePageInformation(w, $, url) {
   // the page has to be identified by metro-title,
   // since the url doesn't always change
   var title = $('h2.metro-title').text().trim();
-  var timestamp = new Date();
+  const timestamp = new Date();
   console.log("running " + title);
   if(title == "Prodotto AUTOVETTURE") {
     // this works with the ( > ) button
@@ -62,8 +57,10 @@ function savePageInformation(w, $, url) {
 
 }
 
+// Functions with take- are each customed for one page
+
 function makePage(w, title, time, info, param1) {
-  var data = {};
+  const data = {};
   data.url = w.location.href;
   data.inizio = time;
   data.classePagina = w.location.pathname.substring(1);
@@ -120,7 +117,7 @@ function takeRiepilogoGenerale($) {
       return [$(x).text(), pair];
     })
   );
-  var data = Object.assign(generale, rate);
+  const data = Object.assign(generale, rate);
   data.Frazionamento = $('select[name=fraz] option:selected').text();
   data.ScadenzaRata = $("td.formleft:contains('Scadenza Rata')").next().get(0).innerText;
   return data;
@@ -216,7 +213,7 @@ function takeElencoGaranzie($) {
 
 function takeAttestatoDiRischio($) {
   function takeFromInput(name) {return $('input[name='+name+']').val();}
-  var data = {};
+  const data = {};
   data.siglaTarga = takeFromInput('siglaTarga');
   data.numTarga = takeFromInput('numTarga');
   data.siglaTargaATR = takeFromInput('siglaTargaATR');
@@ -239,7 +236,7 @@ function takeAttestatoDiRischioSummary($) {
         return t;
     });
   }
-  var data = {};
+  const data = {};
   data.compagniaProv = takeFromSelect('compagniaProv');
   data.Targa = takeTextNextTo('Targa');
   data.TipoEmissione = takeTextNextTo('Tipo Emissione');
@@ -265,14 +262,14 @@ function takeProdottoAutovetture($) {
   function takeTextNextTo(label) {
     return $("td.formleft:contains('"+label+"')").next().get(0).innerText.trim();
   }
-  var data = {};
+  const data = {};
   if($(".labelB").first().next().text().trim() === "ASSISTENZA AUTO GOLD") {
     data.Garanzia = "ASSISTENZA AUTO GOLD";
     data.Premio = takePremioNetto($);
     return data;
   }
   data.ClassificazioneVeicolo = takeTextNextTo('CLASSIFICAZIONE VEICOLO');
-  data.Massimale = takeFromInput('dt_057');
+  data.Massimale = $('select[name=dt_057] option:selected').text();
   data.Eta = parseInt(takeTextNextTo('ETA'));
   data.CavalliFiscali = takeFromInput('dt_037');
   data.TipoCliente = takeTextNextTo('TIPO CLIENTE');
@@ -300,7 +297,7 @@ function takeDatiContratto($) {
   function takeTextNextTo(label) {
     return $("td.formleft:contains('"+label+"')").next().get(0).innerText;
   }
-  var data = {};
+  const data = {};
   data.Decorrenza = takeFromInput('dataDecor');
   data.Ora = parseInt(takeFromInput('oraDecor'));
   data.ScadenzaPolizza = takeFromInput('dataView1');
@@ -331,7 +328,6 @@ function isTextOnPage(str) {
   ).indexOf(str) > -1
 }
 
-
 function getParameterByName(name, url = window.location.href) {
     name = name.replace(/[\[\]]/g, '\\$&');
     var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
@@ -346,9 +342,9 @@ function takeDatiAnagrafici($) {
     .toArray()
     .map(function(x){ return x.innerText; });
 
-  var data = {};
+  const data = {};
   data.DatiContraente = intoPairs(arr.slice(14));
-  data.DatiProprietario = intoPairs(arr.slice(15, 28));
+  data.DatiProprietario = intoPairsInvert(arr.slice(15, 28));
   return data;
 }
 
@@ -360,6 +356,16 @@ function intoPairs(arr) {
   }
 
   return groups.map(function(x){ var t = {}; t[x[0]] = x[1]; return t;});
+}
+
+function intoPairsInvert(arr) {
+  var groups = [];
+
+  for(var i = 0; i < arr.length; i += 2) {
+    groups.push(arr.slice(i, i + 2));
+  }
+
+  return groups.map(function(x){ var t = {}; t[x[1]] = x[0]; return t;});
 }
 
 // for floats with commas
@@ -405,6 +411,134 @@ function sendToServer(w) {
   // $.post( url, jsonObject);
   console.log(jsonObject);
   w.sessionStorage.setItem('FullObject', JSON.stringify(jsonObject));
+}
+
+/**
+  const prodottiVendibili = {
+    'S1': 'Autovetture',
+    'S2': 'Motocicli',
+    'S3':	'Ciclomotori',
+    'S4':	'Autocarri fino a 35Q.li',
+    'S5':	'Autocarri oltre i 35Q.li',
+    'S6':	'Macchine operatrici',
+    'S7':	'Motocarri',
+    'S8':	'Rimorchi',
+    'S9':	'Auto storiche'
+  };
+
+  const garanzieVendibili = {
+    'D00': 'Rc Auto',
+    'D01': 'Rc Auto',
+    'D02': 'Furto/incendio auto',
+    'D03': 'Guasti accidentali',
+    'D04': 'Collisione',
+    'D05': 'Cristalli',
+    'D08': 'Eventi speciali',
+    'D13': 'Garanzie compl.ri',
+    'D16': 'Infortuni (auto)',
+    'D17': 'Atti vandalici',
+    'D18': 'Assistenza auto NEMESI',
+    'D19': 'Assistenza ciclo e motociclo NEMESI',
+    'D20': 'Assistenza VAN',
+    'D21': 'Assistenza SILVER TRUCK senza rimorchio',
+    'D22': 'Assistenza GOLDEN TRUCK senza rimorchio',
+    'D23': 'Assistenza PLATINUM TRUCK senza rimorchio',
+    'D24': 'Assistenza SILVER TRUCK con rimorchio',
+    'D25': 'Assistenza GOLDEN TRUCK con rimorchio',
+    'D26': 'Assistenza PLATINUM TRUCK con rimorchio'
+  };
+  */
+function assignDiscounts(w) {
+  // disable all inputs
+  $('.input5').prop('disabled', true);
+
+  const siglePermesse = ['AL', 'AO', 'AT'];
+  // anno, valore
+  const cuPermessi = [
+    {-1, 0}, {-2, 0}, {-3, 0}, {-4, 0}, {-5, 0}
+  ];
+  const etaVeicoloMassimaPermessa = 11;
+  const etaMassimaPermessa = 11;
+
+  const combinazioni = {
+    'S1': ['D00', 'D01', 'D02', 'D03'],
+    'S2': ['D00', 'D01'],
+    'S3': ['D00', 'D01'],
+    'S4': ['D00', 'D01']
+  };
+
+  // max, min
+  const sconti = {
+    'sc_00001': [0, -20],
+    'sc_00492': [0, -20],
+    'sc_00507': [20, -40],
+    'sc_00081': [0, -20], // Estensione Kasko
+    'sc_00036': [0, -20], // Cash Back
+    'sc_00603': [0, -20],
+    'sc_00604': [0, -20] // Ass. Auto Gold
+  };
+
+  const fields = {
+    'D00': 'sc_00001',
+    'D02': 'sc_00492',
+    'D04': 'sc_00507',
+    'D00': 'sc_00081', // Estensione Kasko
+    'D00': 'sc_00036', // Cash Back
+    'D05': 'sc_00603',
+    'D00': 'sc_00604' // Ass. Auto Gold
+  };
+
+
+  function checkCU() {
+    return true;
+  }
+
+  const datiAnagrafici  = JSON.parse(w.sessionStorage.getItem('pagina - Dati Anagrafici'));
+  const prodAutovetture = JSON.parse(w.sessionStorage.getItem('pagina - Prodotto AUTOVETTURE'));
+
+  const provincia = datiAnagrafici.form.DatiContraente;
+  const etaContraente = prodAutovetture.form.Eta;
+  const etaVeicolo = prodAutovetture.form.EtaVeicolo;
+
+  // const provincia = prodAutovetture.form.ProvinciaTariffa;
+
+  // checking if conditions are respected
+  if($.inArray(provincia, siglePermesse)
+    && (etaContraente <= etaMassimaPermessa)
+    && (etaVeicolo <= etaVeicoloMassimaPermessa)
+    && checkCU() // to implement
+  ) {
+    const elencoGaranzie  = JSON.parse(w.sessionStorage.getItem('pagina - Elenco Garanzie'));
+    elencoGaranzie.form.Tabella.forEach(function(item, i) {
+      if(item.Sel) {
+        const name = item.name.replace("chk", "sc");
+        $('input[name='+name+']')
+        .prop("disabled", false)
+        .val("0.00")
+        .attr("type", "number")
+        .attr("min", sconti[name][1])
+        .attr("max", sconti[name][0])
+        .attr("placeholder", '0.00')
+        .attr("step", "0.5")
+        .change(function(){
+          const max = parseInt($(this).attr('max'));
+          const min = parseInt($(this).attr('min'));
+          if ($(this).val() > max)
+            $(this).val(max);
+          else if ($(this).val() < min)
+            $(this).val(min);
+        });
+      }
+    });
+  }
+
+}
+
+function saveInitialPageInformation(w) {
+  w.sessionStorage.clear();
+  w.sessionStorage.setItem('User', w.localStorage.getItem('lookinglassUserID'));
+  w.sessionStorage.setItem('SessionID', getSessionIdFromCookies());
+  w.sessionStorage.setItem('TimestampISO', (new Date()).toISOString());
 }
 
 $(document).ready(function(){
