@@ -453,10 +453,12 @@ function assignDiscounts(w) {
   $('.input5').prop('disabled', true);
 
   const siglePermesse = ['AL', 'AO', 'AT'];
+
   // anno, valore
   const cuPermessi = [
     [-1, 0], [-2, 0], [-3, 0], [-4, 0], [-5, 0]
   ];
+
   const etaVeicoloMassimaPermessa = 11;
   const etaMassimaPermessa = 11;
 
@@ -489,16 +491,22 @@ function assignDiscounts(w) {
   };
 
 
-  function checkCU() {
-    return true;
+  function checkCU(sinistri) {
+    return sinistri[4] >= parseInt(cuPermessi[0][1])
+    && sinistri[3] >= parseInt(cuPermessi[1][1])
+    && sinistri[2] >= parseInt(cuPermessi[2][1])
+    && sinistri[1] >= parseInt(cuPermessi[3][1])
+    && sinistri[0] >= parseInt(cuPermessi[4][1]);
   }
 
   const datiAnagrafici  = JSON.parse(w.sessionStorage.getItem('pagina - Dati Anagrafici'));
   const prodAutovetture = JSON.parse(w.sessionStorage.getItem('pagina - Prodotto AUTOVETTURE'));
+  const attestatoRischio = JSON.parse(w.sessionStorage.getItem('pagina - Attestato di Rischio 2'));
 
   const provincia = datiAnagrafici.form.DatiContraente;
   const etaContraente = prodAutovetture.form.Eta;
   const etaVeicolo = prodAutovetture.form.EtaVeicolo;
+  const sinistri = attestatoRischio.form.SinistriPagatiRespParit.map(function(x){ return Object.values(x)[0];})
 
   // const provincia = prodAutovetture.form.ProvinciaTariffa;
 
@@ -506,7 +514,7 @@ function assignDiscounts(w) {
   if($.inArray(provincia, siglePermesse)
     && (etaContraente <= etaMassimaPermessa)
     && (etaVeicolo <= etaVeicoloMassimaPermessa)
-    && checkCU() // to implement
+    && checkCU(sinistri) // to implement
   ) {
     const elencoGaranzie  = JSON.parse(w.sessionStorage.getItem('pagina - Elenco Garanzie'));
     elencoGaranzie.form.Tabella.forEach(function(item, i) {
