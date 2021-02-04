@@ -21,7 +21,7 @@ flow:
  */
  /*jshint esversion: 6 */
 
-const paginaPrefix = "pagina - "; 
+const paginaPrefix = "pagina - ";
 
 function savePageInformation(w, $, url) {
   // the page has to be identified by metro-title,
@@ -455,7 +455,7 @@ function assignDiscounts(w) {
   const siglePermesse = ['AL', 'AO', 'AT'];
   // anno, valore
   const cuPermessi = [
-    {-1, 0}, {-2, 0}, {-3, 0}, {-4, 0}, {-5, 0}
+    [-1, 0], [-2, 0], [-3, 0], [-4, 0], [-5, 0]
   ];
   const etaVeicoloMassimaPermessa = 11;
   const etaMassimaPermessa = 11;
