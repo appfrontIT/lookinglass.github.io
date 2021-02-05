@@ -452,7 +452,8 @@ function assignDiscounts(w) {
   // disable all inputs
   $('.input5').prop('disabled', true);
 
-  const siglePermesse = ['AL', 'AO', 'AT'];
+  const siglePermesse = ['AL', 'AO', 'AT', 'RM'];
+  const chosenProdottoVendibile = 'S1';
 
   // anno, valore
   const cuPermessi = [
@@ -481,13 +482,13 @@ function assignDiscounts(w) {
   };
 
   const fields = {
-    'D00': 'sc_00001',
-    'D02': 'sc_00492',
-    'D04': 'sc_00507',
-    'D00': 'sc_00081', // Estensione Kasko
-    'D00': 'sc_00036', // Cash Back
-    'D05': 'sc_00603',
-    'D00': 'sc_00604' // Ass. Auto Gold
+    'sc_00001': 'D00',
+    'sc_00492': 'D02',
+    'sc_00507': 'D04',
+    'sc_00081': 'D01', // Estensione Kasko
+    'sc_00036': 'D00', // Cash Back
+    'sc_00603': 'D05',
+    'sc_00604': 'D18'  // Ass. Auto Gold
   };
 
 
@@ -506,7 +507,8 @@ function assignDiscounts(w) {
   const provincia = datiAnagrafici.form.DatiContraente;
   const etaContraente = prodAutovetture.form.Eta;
   const etaVeicolo = prodAutovetture.form.EtaVeicolo;
-  const sinistri = attestatoRischio.form.SinistriPagatiRespParit.map(function(x){ return Object.values(x)[0];})
+  const sinistri1 = attestatoRischio.form.SinistriPagatiRespParit.map(function(x){ return Object.values(x)[0];})
+  const sinistriTotale = attestatoRischio.form.SinistriPagatiRespPrinc.map(function(x, i){ return Object.values(x)[0] + sinistri1[i];})
 
   // const provincia = prodAutovetture.form.ProvinciaTariffa;
 
@@ -514,12 +516,13 @@ function assignDiscounts(w) {
   if($.inArray(provincia, siglePermesse)
     && (etaContraente <= etaMassimaPermessa)
     && (etaVeicolo <= etaVeicoloMassimaPermessa)
-    && checkCU(sinistri) // to implement
+    && checkCU(sinistriTotale) // to implement
   ) {
     const elencoGaranzie  = JSON.parse(w.sessionStorage.getItem('pagina - Elenco Garanzie'));
+    const combinazioniPermesse = combinazioni[chosenProdottoVendibile];
     elencoGaranzie.form.Tabella.forEach(function(item, i) {
-      if(item.Sel) {
-        const name = item.name.replace("chk", "sc");
+      const name = item.name.replace("chk", "sc");
+      if(item.Sel && $.inArray(fields[name], combinazioniPermesse)) {
         $('input[name='+name+']')
         .prop("disabled", false)
         .val("0.00")
