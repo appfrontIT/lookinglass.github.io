@@ -464,10 +464,12 @@ function assignDiscounts(w) {
   const etaMassimaPermessa = 11;
 
   const combinazioni = {
-    'S1': ['D00', 'D01', 'D02', 'D03'],
-    'S2': ['D00', 'D01'],
-    'S3': ['D00', 'D01'],
-    'S4': ['D00', 'D01']
+    'S1': ['D00', 'D02', 'D03', 'D13'],
+    'S2': ['D16'],
+    'S3': ['D18'],
+    'S4': ['D19'],
+    'S5': ['D20', 'D24', 'D25'],
+    'S6': ['D27'],
   };
 
   // max, min
@@ -483,12 +485,12 @@ function assignDiscounts(w) {
 
   const fields = {
     'sc_00001': 'D00',
-    'sc_00492': 'D02',
-    'sc_00507': 'D04',
-    'sc_00081': 'D01', // Estensione Kasko
-    'sc_00036': 'D00', // Cash Back
-    'sc_00603': 'D05',
-    'sc_00604': 'D18'  // Ass. Auto Gold
+    'sc_00492': 'D01',
+    'sc_00507': 'D02',
+    'sc_00603': 'D03',
+    'sc_00081': 'D05', // Estensione Kasko
+    'sc_00036': 'D08', // Cash Back
+    'sc_00604': 'D13'  // Ass. Auto Gold
   };
 
 
