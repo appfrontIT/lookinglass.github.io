@@ -459,32 +459,21 @@ function assignDiscounts(data) {
   const etaVeicoloMassimaPermessa = jsonObject.etaMaxVeicolo;
   const etaMassimaPermessa = jsonObject.etaMaxContraente;
 
-  const fields = getJsonFromServerSynchronous("codici-garanzie");
-
-  debugger;
-
-  // checking if conditions are respected
-  if(($.inArray(provincia, siglePermesse) !== -1)
-    && (etaContraente <= etaMassimaPermessa)
-    && (etaVeicolo <= etaVeicoloMassimaPermessa)
-    && checkCU(sinistriTotale) // to implement
-  ) {
-    elencoGaranzie.forEach(function(item, i) {
-      const codGaranzia = fields[item.name];
-      if(item.Sel && ($.inArray(codGaranzia, garanzieVendibili) !== -1)) {
-        const sconti = getSconto(codGaranzia);
-        $('input[name='+webname+']')
-        .prop("disabled", false)
-        .val("0.00")
-        .attr("type", "number")
-        .attr("min", sconti[1])
-        .attr("max", sconti[0])
-        .attr("placeholder", '0.00')
-        .attr("step", "0.5")
-        .change(checkMinMax);
-      }
-    });
-  }
+  $.getJson(dataSource + "codici-garanzie.json", function(data){
+    console.log(data);
+    const fields = Object.fromEntries(data.map(function(x){
+      return [x["codice_web"], x["codice"]];
+    }));
+    debugger;
+    // checking if conditions are respected
+    if(($.inArray(provincia, siglePermesse) !== -1)
+      && (etaContraente <= etaMassimaPermessa)
+      && (etaVeicolo <= etaVeicoloMassimaPermessa)
+      && checkCU(sinistriTotale) // to implement
+    ) {
+      activateDiscounts(elencoGaranzie, garanzieVendibili, sconti, fields);
+    }
+  });
 }
 
 function checkMinMax() {
@@ -496,19 +485,23 @@ function checkMinMax() {
     $(this).val(min);
 }
 
-function getJsonFromServerSynchronous(jsonfile) {
-  var fields;
-  $.ajax({
-    dataType: "json",
-    url: dataSource + jsonfile + ".json",
-    data: data,
-    success: function(data) {
-      fields = Object.fromEntries(data.map(function(x){
-        return [x["codice_web"], x["codice"]];
-      }));
+
+function activateDiscounts(elencoGaranzie, garanzieVendibili, sconti, fields) {
+  elencoGaranzie.forEach(function(item, i) {
+    const codGaranzia = fields[item.name];
+    if(item.Sel && ($.inArray(codGaranzia, garanzieVendibili) !== -1)) {
+      const sconti = getSconto(codGaranzia);
+      $('input[name='+webname+']')
+      .prop("disabled", false)
+      .val("0.00")
+      .attr("type", "number")
+      .attr("min", sconti[1])
+      .attr("max", sconti[0])
+      .attr("placeholder", '0.00')
+      .attr("step", "0.5")
+      .change(checkMinMax);
     }
   });
-  return fields;
 }
 
 function saveInitialPageInformation() {
