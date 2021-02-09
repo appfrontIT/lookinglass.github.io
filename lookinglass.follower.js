@@ -26,7 +26,7 @@ const paginaPrefix = "pagina - ";
 function savePageInformation(w, $, url) {
   // the page has to be identified by metro-title,
   // since the url doesn't always change
-  const title = $('h2.metro-title').text().trim();
+  var title = $('h2.metro-title').text().trim(); // must be var
   const timestamp = new Date();
   console.log("running " + title);
   if(title == "Prodotto AUTOVETTURE") {
@@ -216,7 +216,7 @@ function takeElencoGaranzie($) {
 
 function takeAttestatoDiRischio($) {
   function takeFromInput(name) {return $('input[name='+name+']').val();}
-  const data = {};
+  var data = {};
   data.siglaTarga = takeFromInput('siglaTarga');
   data.numTarga = takeFromInput('numTarga');
   data.siglaTargaATR = takeFromInput('siglaTargaATR');
@@ -239,7 +239,7 @@ function takeAttestatoDiRischioSummary($) {
         return t;
     });
   }
-  const data = {};
+  var data = {};
   data.compagniaProv = takeFromSelect('compagniaProv');
   data.Targa = takeTextNextTo('Targa');
   data.TipoEmissione = takeTextNextTo('Tipo Emissione');
