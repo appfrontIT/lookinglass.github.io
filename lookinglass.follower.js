@@ -459,7 +459,11 @@ function assignDiscounts(data) {
   const etaVeicoloMassimaPermessa = jsonObject.etaMaxVeicolo;
   const etaMassimaPermessa = jsonObject.etaMaxContraente;
 
-  $.getJson(dataSource + "codici-garanzie.json", function(data){
+  $.ajax({
+    dataType: "json",
+    url: "https://lookinglass-backend.herokuapp.com/codici-garanzie.json",
+    data: data,
+    success: function(data){
     console.log(data);
     const fields = Object.fromEntries(data.map(function(x){
       return [x["codice_web"], x["codice"]];
@@ -473,7 +477,7 @@ function assignDiscounts(data) {
     ) {
       activateDiscounts(elencoGaranzie, garanzieVendibili, sconti, fields);
     }
-  });
+  }});
 }
 
 function checkMinMax() {
