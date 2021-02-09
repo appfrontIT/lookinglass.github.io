@@ -509,7 +509,7 @@ function assignDiscounts(w) {
   const prodAutovetture = JSON.parse(w.sessionStorage.getItem('pagina - Prodotto AUTOVETTURE'));
   const attestatoRischio = JSON.parse(w.sessionStorage.getItem('pagina - Attestato di Rischio 2'));
 
-  const provincia = datiAnagrafici.form.DatiContraente;
+  const provincia = datiAnagrafici.form.DatiContraente[6].Provincia;
   const etaContraente = prodAutovetture.form.Eta;
   const etaVeicolo = prodAutovetture.form.EtaVeicolo;
   const sinistri1 = attestatoRischio.form.SinistriPagatiRespParit.map(function(x){ return Object.values(x)[0];})
