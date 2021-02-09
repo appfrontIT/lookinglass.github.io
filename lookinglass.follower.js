@@ -444,7 +444,7 @@ function assignDiscounts(data) {
     .map(function(x){ return x.prov; });
   siglePermesse.push('RM');
 
-  const garanzieVendibili = jsonObject.arrProdottiVendibili.find(function(x){ return x.prodotto === chosenProdottoVendibile;});
+  const garanzieVendibili = jsonObject.arrProdottiVendibili.find(function(x){ return x.prodotto === chosenProdottoVendibile;}).arrGaranzie;
 
   const cuPermessi = jsonObject.arrCU;
   const etaVeicoloMassimaPermessa = jsonObject.etaMaxVeicolo;
@@ -469,7 +469,6 @@ function assignDiscounts(data) {
       const fields = Object.fromEntries(data.map(function(x){
         return [x["codice_web"], x["codice"]];
       }));
-      // debugger;
       // checking if conditions are respected
       if(($.inArray(provincia, siglePermesse) !== -1)
         && (etaContraente <= etaMassimaPermessa)
@@ -493,9 +492,7 @@ function checkMinMax() {
 
 function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields) {
   elencoGaranzie.forEach(function(item, i) {
-    debugger;
     const codGaranzia = fields[item.name];
-    console.log(item, codGaranzia, garanzieVendibili);
     if(item.Sel && ($.inArray(codGaranzia, garanzieVendibili) !== -1)) {
       const sconti = getSconto(codGaranzia);
       $('input[name='+webname+']')
