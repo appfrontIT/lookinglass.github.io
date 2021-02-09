@@ -469,7 +469,6 @@ function assignDiscounts(data) {
       const fields = Object.fromEntries(data.map(function(x){
         return [x["codice_web"], x["codice"]];
       }));
-      const sconti =
       // debugger;
       // checking if conditions are respected
       if(($.inArray(provincia, siglePermesse) !== -1)
