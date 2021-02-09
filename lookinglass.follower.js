@@ -516,7 +516,7 @@ function assignDiscounts(w) {
   const sinistriTotale = attestatoRischio.form.SinistriPagatiRespPrinc.map(function(x, i){ return Object.values(x)[0] + sinistri1[i];})
 
   // const provincia = prodAutovetture.form.ProvinciaTariffa;
-
+  console.log(provincia, etaContraente, etaVeicolo, sinistri1, sinistriTotale);
   // checking if conditions are respected
   if($.inArray(provincia, siglePermesse)
     && (etaContraente <= etaMassimaPermessa)
