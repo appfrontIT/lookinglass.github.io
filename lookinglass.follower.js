@@ -476,6 +476,7 @@ function assignDiscounts(data) {
         && (etaVeicolo <= etaVeicoloMassimaPermessa)
         && checkCU(sinistriTotale, cuPermessi) // to implement
       ) {
+        debugger;
         activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields);
       }
     }
@@ -495,6 +496,7 @@ function checkMinMax() {
 
 function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields) {
   elencoGaranzie.forEach(function(item, i) {
+    debugger;
     const codGaranzia = fields[item.name];
     if(item.Sel && ($.inArray(codGaranzia, garanzieVendibili) !== -1)) {
       const sconti = getSconto(codGaranzia);
