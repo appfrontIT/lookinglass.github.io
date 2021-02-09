@@ -26,7 +26,7 @@ const paginaPrefix = "pagina - ";
 function savePageInformation(w, $, url) {
   // the page has to be identified by metro-title,
   // since the url doesn't always change
-  var title = $('h2.metro-title').text().trim();
+  const title = $('h2.metro-title').text().trim();
   const timestamp = new Date();
   console.log("running " + title);
   if(title == "Prodotto AUTOVETTURE") {
@@ -44,6 +44,9 @@ function savePageInformation(w, $, url) {
     var jsonObj = makePage(w, title, timestamp.toISOString(), info);
     w.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
     sendToServer(w);
+  } else if(title === 'Riepilogo Garanzie') {
+    // ending action
+    assignDiscounts(w);
   } else {
     // assuming all other submit buttons are called "Prosegui"
     $("a:contains('Prosegui')").click(function(e) {
