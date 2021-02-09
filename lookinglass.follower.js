@@ -495,7 +495,7 @@ function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields)
     const codGaranzia = fields[item.name];
     if(item.Sel && ($.inArray(codGaranzia, garanzieVendibili) !== -1)) {
       const sconti = getSconto(codGaranzia);
-      $('input[name='+webname+']')
+      $('input[name='+item.name+']')
       .prop("disabled", false)
       .val("0.00")
       .attr("type", "number")
