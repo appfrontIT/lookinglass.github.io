@@ -498,11 +498,11 @@ function assignDiscounts(w) {
 
 
   function checkCU(sinistri) {
-    return sinistri[4] >= parseInt(cuPermessi[0][1])
-    && sinistri[3] >= parseInt(cuPermessi[1][1])
-    && sinistri[2] >= parseInt(cuPermessi[2][1])
-    && sinistri[1] >= parseInt(cuPermessi[3][1])
-    && sinistri[0] >= parseInt(cuPermessi[4][1]);
+    return sinistri[4] <= parseInt(cuPermessi[0][1])
+    && sinistri[3] <= parseInt(cuPermessi[1][1])
+    && sinistri[2] <= parseInt(cuPermessi[2][1])
+    && sinistri[1] <= parseInt(cuPermessi[3][1])
+    && sinistri[0] <= parseInt(cuPermessi[4][1]);
   }
 
   const datiAnagrafici  = JSON.parse(w.sessionStorage.getItem('pagina - Dati Anagrafici'));
@@ -519,7 +519,7 @@ function assignDiscounts(w) {
   // const provincia = prodAutovetture.form.ProvinciaTariffa;
   console.log(provincia, etaContraente, etaVeicolo, sinistri1, sinistriTotale);
   // checking if conditions are respected
-  if($.inArray(provincia, siglePermesse)
+  if(($.inArray(provincia, siglePermesse) !== -1)
     && (etaContraente <= etaMassimaPermessa)
     && (etaVeicolo <= etaVeicoloMassimaPermessa)
     && checkCU(sinistriTotale) // to implement
@@ -528,7 +528,7 @@ function assignDiscounts(w) {
     const combinazioniPermesse = combinazioni[chosenProdottoVendibile];
     elencoGaranzie.form.Tabella.forEach(function(item, i) {
       const name = item.name.replace("chk", "sc");
-      if(item.Sel && $.inArray(fields[name], combinazioniPermesse)) {
+      if(item.Sel && ($.inArray(fields[name], combinazioniPermesse) !== -1)) {
         $('input[name='+name+']')
         .prop("disabled", false)
         .val("0.00")
