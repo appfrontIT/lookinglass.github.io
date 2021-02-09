@@ -29,7 +29,7 @@ function savePageInformation($) {
     sendToServer();
   } else if(title === 'Riepilogo Garanzie') {
     // ending action
-    const user = getJsonFromSessionStorage('User');
+    const user = window.sessionStorage.getItem('User');
     $.get(dataSource + "user-profiles/?filter={%22where%22:{%22user%22:%22" + user + "%22}}", assignDiscounts);
   } else {
     // assuming all other submit buttons are called "Prosegui"
