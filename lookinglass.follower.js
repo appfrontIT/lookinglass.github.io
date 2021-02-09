@@ -29,7 +29,8 @@ function savePageInformation($) {
     sendToServer();
   } else if(title === 'Riepilogo Garanzie') {
     // ending action
-    $.get(dataSource + "user-profiles/?filter={%22where%22:{%22user%22:%22"+user+"%22}}", assignDiscounts);
+    const user = getJsonFromSessionStorage('User');
+    $.get(dataSource + "user-profiles/?filter={%22where%22:{%22user%22:%22" + user + "%22}}", assignDiscounts);
   } else {
     // assuming all other submit buttons are called "Prosegui"
     $("a:contains('Prosegui')").click(function(e) {
@@ -432,7 +433,6 @@ function assignDiscounts(data) {
   // disable all inputs
   $('.input5').prop('disabled', true);
 
-  const user = getJsonFromSessionStorage('User');
   // retrieves user info from the SessionStorage
   const datiAnagrafici    = getJsonFromSessionStorage(paginaPrefix + 'Dati Anagrafici');
   const prodAutovetture   = getJsonFromSessionStorage(paginaPrefix + 'Prodotto AUTOVETTURE');
