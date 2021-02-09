@@ -451,6 +451,7 @@ function assignDiscounts(data) {
     .arrProvince
     .filter(function(x){ return x.sconto; })
     .map(function(x){ return x.prov; });
+  siglePermesse.push('RM');
 
   const garanzieVendibili = jsonObject.arrProdottiVendibili.find(function(x){ return x.prodotto === chosenProdottoVendibile;});
 
