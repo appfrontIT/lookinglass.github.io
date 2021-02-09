@@ -395,7 +395,7 @@ function save() {
     'Prodotto AUTOVETTURE - Dati Integrativi',
     'Riepilogo'
   ].map(function(x, i){
-    return Object.assign(getJsonFromSessionStorage(paginaPrefix + x)), {"id": i});
+    return Object.assign(getJsonFromSessionStorage(paginaPrefix + x), {"id": i});
   });
 
   return Object.assign(generalFields, {"pagine": pages});
