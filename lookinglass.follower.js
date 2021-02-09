@@ -1,60 +1,44 @@
 // assume jQuery is loaded already
-/**
-flow:
-  - prodList.do?_uymHJLU_=lj7&codgruppo=103
-  - garanzieList.do?_Tyy9z_=tP7DQL&codprod=203
-    (cb + cod. autorizz ) -> Prosegui
-  - garanzieList.do?_j0x_=zJwIRX (tipo di polizza?)
-    dati anagrafici
-  - garanzieList.do?_GmFSPs_=9eddYU (Dati anagrafici)
-  - anagEmissione.do?_qkVDIke_=wxG0E
-    (campi di testo)
-  - anagEmissione.do?_qkVDIke_=wxG0E
-  - adeguatezza.do?_LkKZ_=pjXX7Xk&result=go
-  - datiContratto.do?_PWUo_=RSi (Dati Contratto)
-  - datiContratto.do?_PWUo_=RSi (Attestato di rischio - 1)
-  - attestatoRischio.do?_PWUo_=RSi (Attestato di rischio - 2)
-  - attestatoRischio.do?_PWUo_=RSi (Prodotto autovetture)
-  - matriceGaranzie.do?_PWUo_=RSi (Matrice Garanzie)
-  - matriceGaranzie.do?_PWUo_=RSi (Riepilogo Garanzie)
-  -
- */
- /*jshint esversion: 6 */
+/*jslint es6 */
+"use strict";
 
 const paginaPrefix = "pagina - ";
+const dataSource = "https://lookinglass-backend.herokuapp.com/";
 
-function savePageInformation(w, $, url) {
+function savePageInformation($) {
   // the page has to be identified by metro-title,
   // since the url doesn't always change
   var title = $('h2.metro-title').text().trim(); // must be var
   const timestamp = new Date();
-  console.log("running " + title);
+  console.log("title: " + title);
   if(title == "Prodotto AUTOVETTURE") {
     // this works with the ( > ) button
     $("a.linkball").last().click(function(e) {
-      var info = takeProdottoAutovetture($);
-      var jsonObj = makePage(w, title, timestamp.toISOString(), info);
-      if(w.sessionStorage.getItem(paginaPrefix + title) !== null)
+      const info = takeProdottoAutovetture($);
+      const jsonObj = makePage(title, timestamp.toISOString(), info);
+      if(window.sessionStorage.getItem(paginaPrefix + title) !== null) {
         title = title + " 2";
-      w.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
+      }
+      window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
     });
   } else if(title === 'Riepilogo') {
     // ending action
-    var info = takeRiepilogoGenerale($);
-    var jsonObj = makePage(w, title, timestamp.toISOString(), info);
-    w.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
-    sendToServer(w);
+    const info = takeRiepilogoGenerale($);
+    const jsonObj = makePage(title, timestamp.toISOString(), info);
+    window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
+    sendToServer();
   } else if(title === 'Riepilogo Garanzie') {
     // ending action
-    assignDiscounts(w);
+    $.get(dataSource + "user-profiles/?filter={%22where%22:{%22user%22:%22"+user+"%22}}", assignDiscounts);
   } else {
     // assuming all other submit buttons are called "Prosegui"
     $("a:contains('Prosegui')").click(function(e) {
-      var info = takeSwitch(title, $);
-      var jsonObj = makePage(w, title, timestamp.toISOString(), info);
-      if(w.sessionStorage.getItem(paginaPrefix + title) !== null)
+      const info = takeSwitch(title, $);
+      const jsonObj = makePage(title, timestamp.toISOString(), info);
+      if(window.sessionStorage.getItem(paginaPrefix + title) !== null) {
         title = title + " 2";
-      w.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
+      }
+      window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
     });
   }
 
@@ -62,11 +46,11 @@ function savePageInformation(w, $, url) {
 
 // Functions with take- are each customed for one page
 
-function makePage(w, title, time, info, param1) {
+function makePage(title, time, info, param1) {
   const data = {};
-  data.url = w.location.href;
+  data.url = window.location.href;
   data.inizio = time;
-  data.classePagina = w.location.pathname.substring(1);
+  data.classePagina = window.location.pathname.substring(1);
   data.sottoClassePagina = title;
   if(data.classePagina === "garanzieList.do") {
     data.codprod = parseInt(getParameterByName('codprod'));
@@ -99,7 +83,7 @@ function takeSwitch(title, $) {
     case 'Prodotto AUTOVETTURE - Dati Integrativi':
       return takeDatiIntegrativi($);
     default:
-      console.error("Some Unknown page!")
+      console.error("Some Unknown page!");
       return {};
   }
 }
@@ -156,7 +140,7 @@ function takeQuestionario($) {
             "value": x.value,
             "checked": x.checked
           };
-        }).filter(function(x){ return x.id != ""});
+        }).filter(function(x){ return x.id != "";});
     }
     return data;
   }
@@ -169,9 +153,9 @@ function takeQuestionario($) {
 
 function takeRiepilogoGaranzie($) {
   function child(x) {
-    var tds = $(x).children();
-    var chbx = tds[0].firstChild;
-    var data = {};
+    const tds = $(x).children();
+    const chbx = tds[0].firstChild;
+    const data = {};
 
     data.Sel = chbx.checked;
     data.name = chbx.name;
@@ -180,13 +164,14 @@ function takeRiepilogoGaranzie($) {
     data.Oggetto = tds[2].innerText;
     data.Premio = ncd(tds[3].innerText);
     data.Sconto = ncd(tds[4].firstElementChild.value);
-    if(tds[5].firstElementChild)
+    if(tds[5].firstElementChild) {
       data.PremioLibero = ncd(tds[5].firstElementChild.value);
+    }
 
     return data;
   }
 
-  var data = {};
+  const data = {};
   data.Tabella = $('form[name=form0] tr').toArray().slice(2,8).map(child);
   data.Totale = ncd($("td.labelB:contains('Totale')").next().text().trim());
   return data;
@@ -195,9 +180,9 @@ function takeRiepilogoGaranzie($) {
 function takeElencoGaranzie($) {
   function takeFromInput(name) {return $('input[name='+name+']').val();}
   function child(x) {
-    var tds = $(x).children();
-    var chbx = tds[0].firstChild;
-    var data = {};
+    const tds = $(x).children();
+    const chbx = tds[0].firstChild;
+    const data = {};
 
     data.Sel = chbx.checked;
     data.name = chbx.name;
@@ -304,7 +289,7 @@ function takeDatiContratto($) {
   data.Decorrenza = takeFromInput('dataDecor');
   data.Ora = parseInt(takeFromInput('oraDecor'));
   data.ScadenzaPolizza = takeFromInput('dataView1');
-  data.Frazionamento = takeFromSelect('fraz')
+  data.Frazionamento = takeFromSelect('fraz');
   data.ScadenzaRata = takeFromSelect('scadRataC');
   data.DurataAnni = parseInt(takeFromInput('durataAnni'));
   data.DurataMesi = parseInt(takeFromInput('durataMesi'));
@@ -326,17 +311,17 @@ function takeDatiContratto($) {
 }
 
 function isTextOnPage(str) {
-  return (
+  return ((
     document.documentElement.textContent || document.documentElement.innerText
-  ).indexOf(str) > -1
+  ).indexOf(str)) > -1;
 }
 
 function getParameterByName(name, url = window.location.href) {
     name = name.replace(/[\[\]]/g, '\\$&');
-    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-        results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return '';
+    const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+    const results = regex.exec(url);
+    if (!results) {return null; }
+    if (!results[2]){ return ''; }
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
@@ -353,12 +338,15 @@ function takeDatiAnagrafici($) {
 
 function intoPairs(arr) {
   var groups = [];
-
   for(var i = 0; i < arr.length; i += 2) {
     groups.push(arr.slice(i, i + 2));
   }
 
-  return groups.map(function(x){ var t = {}; t[x[0]] = x[1]; return t;});
+  return groups.map(function(x){
+    var t = {};
+    t[x[0]] = x[1];
+    return t;
+  });
 }
 
 function intoPairsInvert(arr) {
@@ -387,9 +375,13 @@ function getSessionIdFromCookies() {
   .split('=')[1];
 }
 
-function save(w) {
+function getJsonFromSessionStorage(name) {
+  return JSON.parse(window.sessionStorage.getItem(name));
+}
+
+function save() {
   var generalFields = Object.fromEntries(['User', 'SessionID', 'TimestampISO'].map(function(x){
-    return [x, w.sessionStorage.getItem(x)];
+    return [x, window.sessionStorage.getItem(x)];
   }));
 
   var pages = [
@@ -403,165 +395,132 @@ function save(w) {
     'Prodotto AUTOVETTURE - Dati Integrativi',
     'Riepilogo'
   ].map(function(x, i){
-    return Object.assign(JSON.parse(w.sessionStorage.getItem(paginaPrefix + x)), {"id": i});
+    return Object.assign(getJsonFromSessionStorage(paginaPrefix + x)), {"id": i});
   });
 
   return Object.assign(generalFields, {"pagine": pages});
 }
 
-function sendToServer(w) {
-  var jsonObject = save(w);
-  // $.post( url, jsonObject);
+function sendToServer() {
+  var jsonObject = save();
+  // $.post(url, jsonObject);
   console.log(jsonObject);
-  w.sessionStorage.setItem('FullObject', JSON.stringify(jsonObject));
+  // window.sessionStorage.setItem('FullObject', JSON.stringify(jsonObject));
 }
 
-/**
-  const prodottiVendibili = {
-    'S1': 'Autovetture',
-    'S2': 'Motocicli',
-    'S3':	'Ciclomotori',
-    'S4':	'Autocarri fino a 35Q.li',
-    'S5':	'Autocarri oltre i 35Q.li',
-    'S6':	'Macchine operatrici',
-    'S7':	'Motocarri',
-    'S8':	'Rimorchi',
-    'S9':	'Auto storiche'
-  };
+  function checkCU(sinistri) {
+    return sinistri[4] <= cuPermessi[0]
+    && sinistri[3] <= cuPermessi[1]
+    && sinistri[2] <= cuPermessi[2]
+    && sinistri[1] <= cuPermessi[3]
+    && sinistri[0] <= cuPermessi[4];
+  }
 
-  const garanzieVendibili = {
-    'D00': 'Rc Auto',
-    'D01': 'Rc Auto',
-    'D02': 'Furto/incendio auto',
-    'D03': 'Guasti accidentali',
-    'D04': 'Collisione',
-    'D05': 'Cristalli',
-    'D08': 'Eventi speciali',
-    'D13': 'Garanzie compl.ri',
-    'D16': 'Infortuni (auto)',
-    'D17': 'Atti vandalici',
-    'D18': 'Assistenza auto NEMESI',
-    'D19': 'Assistenza ciclo e motociclo NEMESI',
-    'D20': 'Assistenza VAN',
-    'D21': 'Assistenza SILVER TRUCK senza rimorchio',
-    'D22': 'Assistenza GOLDEN TRUCK senza rimorchio',
-    'D23': 'Assistenza PLATINUM TRUCK senza rimorchio',
-    'D24': 'Assistenza SILVER TRUCK con rimorchio',
-    'D25': 'Assistenza GOLDEN TRUCK con rimorchio',
-    'D26': 'Assistenza PLATINUM TRUCK con rimorchio'
-  };
-  */
-function assignDiscounts(w) {
+  function getSconto(codGaranzia) {
+    const sconto = jsonObject.arrSconti.find(function(x) {
+      return x.garanzia === codGaranzia;
+    });
+    if(sconto == -1)
+      return [0,0];
+    else
+      return [sconto.scontoMax, sconto.scontoMin];
+  }
+// json function
+function assignDiscounts(data) {
+  const jsonObject = data[0];
+  console.log(jsonObject);
   // disable all inputs
   $('.input5').prop('disabled', true);
 
-  const siglePermesse = ['AL', 'AO', 'AT', 'RM'];
-  const chosenProdottoVendibile = 'S1';
-
-  // anno, valore
-  const cuPermessi = [
-    [-1, 0], [-2, 0], [-3, 0], [-4, 0], [-5, 0]
-  ];
-
-  const etaVeicoloMassimaPermessa = 120;
-  const etaMassimaPermessa = 46;
-
-  const combinazioni = {
-    'S1': ['D00', 'D02', 'D03', 'D13'],
-    'S2': ['D16'],
-    'S3': ['D18'],
-    'S4': ['D19'],
-    'S5': ['D20', 'D24', 'D25'],
-    'S6': ['D27'],
-  };
-
-  // max, min
-  const sconti = {
-    'sc_00001': [0, -20],
-    'sc_00492': [0, -20],
-    'sc_00507': [20, -40],
-    'sc_00081': [0, -20], // Estensione Kasko
-    'sc_00036': [0, -20], // Cash Back
-    'sc_00603': [0, -20],
-    'sc_00604': [0, -20] // Ass. Auto Gold
-  };
-
-  const fields = {
-    'sc_00001': 'D00',
-    'sc_00492': 'D01',
-    'sc_00507': 'D02',
-    'sc_00603': 'D03',
-    'sc_00081': 'D05', // Estensione Kasko
-    'sc_00036': 'D08', // Cash Back
-    'sc_00604': 'D13'  // Ass. Auto Gold
-  };
-
-
-  function checkCU(sinistri) {
-    return sinistri[4] <= parseInt(cuPermessi[0][1])
-    && sinistri[3] <= parseInt(cuPermessi[1][1])
-    && sinistri[2] <= parseInt(cuPermessi[2][1])
-    && sinistri[1] <= parseInt(cuPermessi[3][1])
-    && sinistri[0] <= parseInt(cuPermessi[4][1]);
-  }
-
-  const datiAnagrafici  = JSON.parse(w.sessionStorage.getItem('pagina - Dati Anagrafici'));
-  const prodAutovetture = JSON.parse(w.sessionStorage.getItem('pagina - Prodotto AUTOVETTURE'));
-  const attestatoRischio = JSON.parse(w.sessionStorage.getItem('pagina - Attestato di Rischio 2'));
+  const user = getJsonFromSessionStorage('User');
+  // retrieves user info from the SessionStorage
+  const datiAnagrafici    = getJsonFromSessionStorage(paginaPrefix + 'Dati Anagrafici');
+  const prodAutovetture   = getJsonFromSessionStorage(paginaPrefix + 'Prodotto AUTOVETTURE');
+  const attestatoRischio  = getJsonFromSessionStorage(paginaPrefix + 'Attestato di Rischio 2');
+  const elencoGaranzie    = getJsonFromSessionStorage(paginaPrefix + 'Elenco Garanzie').form.Tabella;
 
   const provincia = datiAnagrafici.form.DatiContraente[6].Provincia;
   const etaContraente = prodAutovetture.form.Eta;
   const etaVeicolo = prodAutovetture.form.EtaVeicolo;
+  const chosenProdottoVendibile = 'S1';
   // slice(0,-1) because the last one has letters
   const sinistri1 = attestatoRischio.form.SinistriPagatiRespParit.slice(0, -1).map(function(x){ return parseInt(Object.values(x)[0]);})
   const sinistriTotale = attestatoRischio.form.SinistriPagatiRespPrinc.slice(0, -1).map(function(x, i){ return parseInt(Object.values(x)[0]) + sinistri1[i];})
 
-  // const provincia = prodAutovetture.form.ProvinciaTariffa;
-  console.log(provincia, etaContraente, etaVeicolo, sinistri1, sinistriTotale);
+  const siglePermesse = jsonObject
+    .arrProvince
+    .filter(function(x){ return x.sconto; })
+    .map(function(x){ return x.prov; });
+
+  const garanzieVendibili = jsonObject.arrProdottiVendibili.find(function(x){ return x.prodotto === chosenProdottoVendibile;});
+
+  const cuPermessi = jsonObject.arrCU;
+  const etaVeicoloMassimaPermessa = jsonObject.etaMaxVeicolo;
+  const etaMassimaPermessa = jsonObject.etaMaxContraente;
+
+  const fields = getJsonFromServerSynchronous("codici-garanzie");
+
+  debugger;
+
   // checking if conditions are respected
   if(($.inArray(provincia, siglePermesse) !== -1)
     && (etaContraente <= etaMassimaPermessa)
     && (etaVeicolo <= etaVeicoloMassimaPermessa)
     && checkCU(sinistriTotale) // to implement
   ) {
-    const elencoGaranzie  = JSON.parse(w.sessionStorage.getItem('pagina - Elenco Garanzie'));
-    const combinazioniPermesse = combinazioni[chosenProdottoVendibile];
-    elencoGaranzie.form.Tabella.forEach(function(item, i) {
-      const name = item.name.replace("chk", "sc");
-      if(item.Sel && ($.inArray(fields[name], combinazioniPermesse) !== -1)) {
-        $('input[name='+name+']')
+    elencoGaranzie.forEach(function(item, i) {
+      const codGaranzia = fields[item.name];
+      if(item.Sel && ($.inArray(codGaranzia, garanzieVendibili) !== -1)) {
+        const sconti = getSconto(codGaranzia);
+        $('input[name='+webname+']')
         .prop("disabled", false)
         .val("0.00")
         .attr("type", "number")
-        .attr("min", sconti[name][1])
-        .attr("max", sconti[name][0])
+        .attr("min", sconti[1])
+        .attr("max", sconti[0])
         .attr("placeholder", '0.00')
         .attr("step", "0.5")
-        .change(function(){
-          const max = parseInt($(this).attr('max'));
-          const min = parseInt($(this).attr('min'));
-          if ($(this).val() > max)
-            $(this).val(max);
-          else if ($(this).val() < min)
-            $(this).val(min);
-        });
+        .change(checkMinMax);
       }
     });
   }
-
 }
 
-function saveInitialPageInformation(w) {
-  w.sessionStorage.clear();
-  w.sessionStorage.setItem('User', w.localStorage.getItem('lookinglassUserID'));
-  w.sessionStorage.setItem('SessionID', getSessionIdFromCookies());
-  w.sessionStorage.setItem('TimestampISO', (new Date()).toISOString());
+function checkMinMax() {
+  const max = parseInt($(this).attr('max'));
+  const min = parseInt($(this).attr('min'));
+  if ($(this).val() > max)
+    $(this).val(max);
+  else if ($(this).val() < min)
+    $(this).val(min);
+}
+
+function getJsonFromServerSynchronous(jsonfile) {
+  var fields;
+  $.ajax({
+    dataType: "json",
+    url: dataSource + jsonfile + ".json",
+    data: data,
+    success: function(data) {
+      fields = Object.fromEntries(data.map(function(x){
+        return [x["codice_web"], x["codice"]];
+      }));
+    }
+  });
+  return fields;
+}
+
+function saveInitialPageInformation() {
+  window.sessionStorage.clear();
+  window.sessionStorage.setItem('User', window.localStorage.getItem('lookinglassUserID'));
+  window.sessionStorage.setItem('SessionID', getSessionIdFromCookies());
+  window.sessionStorage.setItem('TimestampISO', (new Date()).toISOString());
 }
 
 $(document).ready(function(){
   if(window.location.pathname === "/prodGrpList.do") {
-    saveInitialPageInformation(window);
+    saveInitialPageInformation();
   }
   // adds listeners after each page loads
-  savePageInformation(window, $, location.href);
+  savePageInformation($);
 });
