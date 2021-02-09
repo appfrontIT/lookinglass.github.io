@@ -476,13 +476,11 @@ function assignDiscounts(data) {
         && (etaVeicolo <= etaVeicoloMassimaPermessa)
         && checkCU(sinistriTotale, cuPermessi) // to implement
       ) {
-        debugger;
         activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields);
       }
     }
   });
 }
-
 
 function checkMinMax() {
   const max = parseInt($(this).attr('max'));
@@ -493,11 +491,11 @@ function checkMinMax() {
     $(this).val(min);
 }
 
-
 function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields) {
   elencoGaranzie.forEach(function(item, i) {
     debugger;
     const codGaranzia = fields[item.name];
+    console.log(item, codGaranzia, garanzieVendibili);
     if(item.Sel && ($.inArray(codGaranzia, garanzieVendibili) !== -1)) {
       const sconti = getSconto(codGaranzia);
       $('input[name='+webname+']')
