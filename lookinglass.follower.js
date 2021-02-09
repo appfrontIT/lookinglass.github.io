@@ -409,7 +409,7 @@ function sendToServer() {
   // window.sessionStorage.setItem('FullObject', JSON.stringify(jsonObject));
 }
 
-  function checkCU(sinistri) {
+  function checkCU(sinistri, cuPermessi) {
     return sinistri[4] <= cuPermessi[0]
     && sinistri[3] <= cuPermessi[1]
     && sinistri[2] <= cuPermessi[2]
@@ -464,20 +464,21 @@ function assignDiscounts(data) {
     url: "https://lookinglass-backend.herokuapp.com/codici-garanzie.json",
     data: data,
     success: function(data){
-    console.log(data);
-    const fields = Object.fromEntries(data.map(function(x){
-      return [x["codice_web"], x["codice"]];
-    }));
-    debugger;
-    // checking if conditions are respected
-    if(($.inArray(provincia, siglePermesse) !== -1)
-      && (etaContraente <= etaMassimaPermessa)
-      && (etaVeicolo <= etaVeicoloMassimaPermessa)
-      && checkCU(sinistriTotale) // to implement
-    ) {
-      activateDiscounts(elencoGaranzie, garanzieVendibili, sconti, fields);
+      console.log(data);
+      const fields = Object.fromEntries(data.map(function(x){
+        return [x["codice_web"], x["codice"]];
+      }));
+      debugger;
+      // checking if conditions are respected
+      if(($.inArray(provincia, siglePermesse) !== -1)
+        && (etaContraente <= etaMassimaPermessa)
+        && (etaVeicolo <= etaVeicoloMassimaPermessa)
+        && checkCU(sinistriTotale, cuPermessi) // to implement
+      ) {
+        activateDiscounts(elencoGaranzie, garanzieVendibili, sconti, fields);
+      }
     }
-  }});
+  });
 }
 
 function checkMinMax() {
