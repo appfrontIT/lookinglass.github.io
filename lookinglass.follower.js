@@ -417,15 +417,6 @@ function sendToServer() {
     && sinistri[0] <= cuPermessi[4];
   }
 
-  function getSconto(codGaranzia) {
-    const sconto = jsonObject.arrSconti.find(function(x) {
-      return x.garanzia === codGaranzia;
-    });
-    if(sconto == -1)
-      return [0,0];
-    else
-      return [sconto.scontoMax, sconto.scontoMin];
-  }
 // json function
 function assignDiscounts(data) {
   const jsonObject = data[0];
@@ -459,6 +450,16 @@ function assignDiscounts(data) {
   const etaVeicoloMassimaPermessa = jsonObject.etaMaxVeicolo;
   const etaMassimaPermessa = jsonObject.etaMaxContraente;
 
+  function getSconto(codGaranzia) {
+    const sconto = jsonObject.arrSconti.find(function(x) {
+      return x.garanzia === codGaranzia;
+    });
+    if(sconto == -1)
+      return [0,0];
+    else
+      return [sconto.scontoMax, sconto.scontoMin];
+  }
+
   $.ajax({
     dataType: "json",
     url: "https://lookinglass-backend.herokuapp.com/codici-garanzie.json",
@@ -468,18 +469,20 @@ function assignDiscounts(data) {
       const fields = Object.fromEntries(data.map(function(x){
         return [x["codice_web"], x["codice"]];
       }));
-      debugger;
+      const sconti =
+      // debugger;
       // checking if conditions are respected
       if(($.inArray(provincia, siglePermesse) !== -1)
         && (etaContraente <= etaMassimaPermessa)
         && (etaVeicolo <= etaVeicoloMassimaPermessa)
         && checkCU(sinistriTotale, cuPermessi) // to implement
       ) {
-        activateDiscounts(elencoGaranzie, garanzieVendibili, sconti, fields);
+        activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields);
       }
     }
   });
 }
+
 
 function checkMinMax() {
   const max = parseInt($(this).attr('max'));
@@ -491,7 +494,7 @@ function checkMinMax() {
 }
 
 
-function activateDiscounts(elencoGaranzie, garanzieVendibili, sconti, fields) {
+function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields) {
   elencoGaranzie.forEach(function(item, i) {
     const codGaranzia = fields[item.name];
     if(item.Sel && ($.inArray(codGaranzia, garanzieVendibili) !== -1)) {
