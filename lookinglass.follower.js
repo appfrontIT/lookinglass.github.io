@@ -512,8 +512,8 @@ function assignDiscounts(w) {
   const provincia = datiAnagrafici.form.DatiContraente[6].Provincia;
   const etaContraente = prodAutovetture.form.Eta;
   const etaVeicolo = prodAutovetture.form.EtaVeicolo;
-  const sinistri1 = attestatoRischio.form.SinistriPagatiRespParit.map(function(x){ return Object.values(x)[0];})
-  const sinistriTotale = attestatoRischio.form.SinistriPagatiRespPrinc.map(function(x, i){ return Object.values(x)[0] + sinistri1[i];})
+  const sinistri1 = attestatoRischio.form.SinistriPagatiRespParit.splice(-1, 1).map(function(x){ return parseInt(Object.values(x)[0]);})
+  const sinistriTotale = attestatoRischio.form.SinistriPagatiRespPrinc.splice(-1, 1).map(function(x, i){ return parseInt(Object.values(x)[0]) + sinistri1[i];})
 
   // const provincia = prodAutovetture.form.ProvinciaTariffa;
   console.log(provincia, etaContraente, etaVeicolo, sinistri1, sinistriTotale);
