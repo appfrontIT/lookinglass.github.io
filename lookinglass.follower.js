@@ -463,8 +463,8 @@ function assignDiscounts(w) {
     [-1, 0], [-2, 0], [-3, 0], [-4, 0], [-5, 0]
   ];
 
-  const etaVeicoloMassimaPermessa = 11;
-  const etaMassimaPermessa = 11;
+  const etaVeicoloMassimaPermessa = 120;
+  const etaMassimaPermessa = 46;
 
   const combinazioni = {
     'S1': ['D00', 'D02', 'D03', 'D13'],
