@@ -396,7 +396,10 @@ function save() {
     'Prodotto AUTOVETTURE - Dati Integrativi',
     'Riepilogo'
   ].map(function(x, i){
-    return Object.assign(getJsonFromSessionStorage(paginaPrefix + x), {"id": i});
+    const retrievedJson = getJsonFromSessionStorage(paginaPrefix + x);
+    if(retrievedJson !== undefined) {
+      return Object.assign(retrievedJson, {"id": i});
+    }
   });
 
   return Object.assign(generalFields, {"pagine": pages});
@@ -409,13 +412,13 @@ function sendToServer() {
   // window.sessionStorage.setItem('FullObject', JSON.stringify(jsonObject));
 }
 
-  function checkCU(sinistri, cuPermessi) {
-    return sinistri[4] <= cuPermessi[0]
-    && sinistri[3] <= cuPermessi[1]
-    && sinistri[2] <= cuPermessi[2]
-    && sinistri[1] <= cuPermessi[3]
-    && sinistri[0] <= cuPermessi[4];
-  }
+function checkCU(sinistri, cuPermessi) {
+  return sinistri[4] <= cuPermessi[0]
+  && sinistri[3] <= cuPermessi[1]
+  && sinistri[2] <= cuPermessi[2]
+  && sinistri[1] <= cuPermessi[3]
+  && sinistri[0] <= cuPermessi[4];
+}
 
 // json function
 function assignDiscounts(data) {
