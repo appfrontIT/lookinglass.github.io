@@ -397,7 +397,7 @@ function save() {
     'Riepilogo'
   ].map(function(x, i){
     const retrievedJson = getJsonFromSessionStorage(paginaPrefix + x);
-    if(retrievedJson !== undefined) {
+    if(retrievedJson) {
       return Object.assign(retrievedJson, {"id": i});
     }
   });
