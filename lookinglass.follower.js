@@ -406,7 +406,7 @@ function save() {
 
   return JSON.stringify(Object.assign(generalFields, {"pagine": pages}));
 }
-
+var jsonText;
 function sendToServer() {
   jsonText = save();
   console.log(jsonText);
