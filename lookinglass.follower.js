@@ -102,7 +102,7 @@ function takeRiepilogoGenerale($) {
     $('td.formleft').toArray().slice(1,8).map(function(x){
       var sibs = $(x).siblings();
       var pair = [ncd(sibs[0].innerText), ncd(sibs[1].innerText)];
-      return [$(x).text().replace(".", ""), pair];
+      return [$(x).text().replace(/\./g, ''), pair];
     })
   );
   const data = Object.assign(generale, rate);
