@@ -102,7 +102,7 @@ function takeRiepilogoGenerale($) {
     $('td.formleft').toArray().slice(1,8).map(function(x){
       var sibs = $(x).siblings();
       var pair = [ncd(sibs[0].innerText), ncd(sibs[1].innerText)];
-      return [$(x).text(), pair];
+      return [$(x).text().replace(".", ""), pair];
     })
   );
   const data = Object.assign(generale, rate);
@@ -402,6 +402,8 @@ function save() {
     if(retrievedJson) {
       return Object.assign(retrievedJson, {"id": i});
     }
+  }).filter(function(x){
+    return x !== null;
   });
 
   return JSON.stringify(Object.assign(generalFields, {"pagine": pages}));
@@ -410,20 +412,20 @@ var jsonText;
 function sendToServer() {
   jsonText = save();
   console.log(jsonText);
-  
+
   $.ajax({
-  type: "POST",
-  contentType: 'application/json',
-  dataType: "json",
-  url: "https://lookinglass-backend.herokuapp.com/navigation-actions/",
-  data: jsonText,
-  success: function(data){
-    console.log(data);
-  },
-  error: function(qXHR, status, errorThrown) {
-    console.log(qXHR, status, errorThrown);
-  }
-});
+    type: "POST",
+    contentType: 'application/json',
+    dataType: "json",
+    url: "https://lookinglass-backend.herokuapp.com/navigation-actions/",
+    data: jsonText,
+    success: function(data){
+      console.log(data);
+    },
+    error: function(qXHR, status, errorThrown) {
+      console.log(qXHR, status, errorThrown);
+    }
+  });
   // window.sessionStorage.setItem('FullObject', JSON.stringify(jsonObject));
 }
 
