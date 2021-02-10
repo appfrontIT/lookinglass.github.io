@@ -381,9 +381,11 @@ function getJsonFromSessionStorage(name) {
 }
 
 function save() {
-  var generalFields = Object.fromEntries(['User', 'SessionID', 'TimestampISO'].map(function(x){
-    return [x, window.sessionStorage.getItem(x)];
-  }));
+  const generalFields = {
+    "user": window.sessionStorage.getItem('User'),
+    "session_id": window.sessionStorage.getItem('SessionID'),
+    "timestamp_iso": window.sessionStorage.getItem('TimestampISO')
+  };
 
   var pages = [
     'Elenco Garanzie',
@@ -402,7 +404,7 @@ function save() {
     }
   });
 
-  return Object.assign(generalFields, {"pagine": pages});
+  return JSON.stringify(Object.assign(generalFields, {"pagine": pages}));
 }
 
 function sendToServer() {
