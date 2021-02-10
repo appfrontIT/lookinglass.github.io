@@ -408,9 +408,22 @@ function save() {
 }
 
 function sendToServer() {
-  var jsonObject = save();
-  // $.post(url, jsonObject);
-  console.log(jsonObject);
+  jsonText = save();
+  console.log(jsonText);
+  $.post(url, jsonText);
+  $.ajax({
+  type: "POST",
+  contentType: 'application/json',
+  dataType: "json",
+  url: "https://lookinglass-backend.herokuapp.com/navigation-actions/",
+  data: jsonText,
+  success: function(data){
+    console.log(data);
+  },
+  error: function(qXHR, status, errorThrown) {
+    console.log(qXHR, status, errorThrown);
+  }
+});
   // window.sessionStorage.setItem('FullObject', JSON.stringify(jsonObject));
 }
 
