@@ -387,7 +387,7 @@ function save() {
     "timestamp_iso": window.sessionStorage.getItem('TimestampISO')
   };
 
-  var pages = [
+  const pages = [
     'Elenco Garanzie',
     'Dati Anagrafici',
     'Questionario',
@@ -410,7 +410,7 @@ var jsonText;
 function sendToServer() {
   jsonText = save();
   console.log(jsonText);
-  $.post(url, jsonText);
+  
   $.ajax({
   type: "POST",
   contentType: 'application/json',
