@@ -26,51 +26,6 @@ function makePage(title, time, info) {
   return data;
 }
 
-function savePageInformation($) {
-  // the page has to be identified by metro-title,
-  // since the url doesn't always change
-  var title = $('h2.metro-title').text().trim(); // must be var
-  const timestamp = new Date();
-  console.log("title: " + title);
-  if(title === "Prodotto AUTOVETTURE") {
-    // this works with the ( > ) button
-    $("a.linkball").last().click(function() {
-      const info = takeProdottoAutovetture($);
-      const jsonObj = makePage(title, timestamp.toISOString(), info);
-      if(window.sessionStorage.getItem(paginaPrefix + title) !== null) {
-        title = title + " 2";
-      }
-      window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
-    });
-  } else if(title === 'Gruppi Prodotto') {
-    $("td.alternate").click(function(ev){
-      ev.preventDefault();
-      if(window.sessionStorage.getItem("UserProfile") === null){
-        window.alert("still downloading UserProfile");
-      }
-    });
-  } else if(title === 'Riepilogo') {
-    // ending action
-    const info = takeRiepilogoGenerale($);
-    const jsonObj = makePage(title, timestamp.toISOString(), info);
-    window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
-    sendToServer();
-  } else if(title === 'Riepilogo Garanzie') {
-    // ending action
-    assignDiscounts(JSON.parse(window.sessionStorage.getItem('UserProfile')));
-  } else {
-    // assuming all other submit buttons are called "Prosegui"
-    $("a:contains('Prosegui')").click(function(e) {
-      const info = takeSwitch(title, $);
-      const jsonObj = makePage(title, timestamp.toISOString(), info);
-      if(window.sessionStorage.getItem(paginaPrefix + title) !== null) {
-        title = title + " 2";
-      }
-      window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
-    });
-  }
-
-}
 
 // Functions with take- are each customed for one page
 
@@ -460,10 +415,10 @@ function assignDiscounts(jsonObject) {
   $('.input5').prop('disabled', true);
 
   // retrieves user info from the SessionStorage
-  const datiAnagrafici    = getJsonFromSessionStorage(paginaPrefix + 'Dati Anagrafici');
-  const prodAutovetture   = getJsonFromSessionStorage(paginaPrefix + 'Prodotto AUTOVETTURE');
-  const attestatoRischio  = getJsonFromSessionStorage(paginaPrefix + 'Attestato di Rischio 2');
-  const elencoGaranzie    = getJsonFromSessionStorage(paginaPrefix + 'Elenco Garanzie').form.Tabella;
+  const datiAnagrafici   = getJsonFromSessionStorage(paginaPrefix + 'Dati Anagrafici');
+  const prodAutovetture  = getJsonFromSessionStorage(paginaPrefix + 'Prodotto AUTOVETTURE');
+  const attestatoRischio = getJsonFromSessionStorage(paginaPrefix + 'Attestato di Rischio 2');
+  const elencoGaranzie   = getJsonFromSessionStorage(paginaPrefix + 'Elenco Garanzie').form.Tabella;
 
   const provincia = datiAnagrafici.form.DatiContraente[6].Provincia;
   const etaContraente = prodAutovetture.form.Eta;
@@ -559,10 +514,70 @@ function saveInitialPageInformation() {
     window.sessionStorage.setItem('UserProfile', data[0]);
   });
 }
+
+
+function getUserProfile() {
+  return JSON.parse(window.sessionStorage.getItem('UserProfile'));
+}
+
 $(document).ready(function(){
   if(window.location.pathname === "/prodGrpList.do") {
     saveInitialPageInformation();
   }
   // adds listeners after each page loads
-  savePageInformation($);
+  // the page has to be identified by metro-title,
+  // since the url doesn't always change
+  var title = $('h2.metro-title').text().trim(); // must be var
+  const timestamp = new Date();
+  console.log("title: " + title);
+
+  switch(title) {
+  case "Prodotto AUTOVETTURE":
+    // this works with the ( > ) button
+    $("a.linkball").last().click(function() {
+      const info = takeProdottoAutovetture($);
+      const jsonObj = makePage(title, timestamp.toISOString(), info);
+      if(window.sessionStorage.getItem(paginaPrefix + title) !== null) {
+        title = title + " 2";
+      }
+      window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
+    });
+    break;
+  case 'Gruppi Prodotto':
+    $("td.alternate").click(function(ev){
+      if(getUserProfile() === null){
+        ev.preventDefault();
+        window.alert("still downloading UserProfile");
+      }
+    });
+    break;
+  case 'Elenco Prodotti':
+    const profile = getUserProfile();
+
+    break;
+  case 'Elenco Garanzie':
+    const profile = getUserProfile();
+
+    break;
+  case 'Riepilogo':
+    // ending action
+    const info = takeRiepilogoGenerale($);
+    const jsonObj = makePage(title, timestamp.toISOString(), info);
+    window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
+    sendToServer();
+  case 'Riepilogo Garanzie':
+    // ending action
+    assignDiscounts(JSON.parse(window.sessionStorage.getItem('UserProfile')));
+    break;
+  default:
+    // assuming all other submit buttons are called "Prosegui"
+    $("a:contains('Prosegui')").click(function(e) {
+      const info = takeSwitch(title, $);
+      const jsonObj = makePage(title, timestamp.toISOString(), info);
+      if(window.sessionStorage.getItem(paginaPrefix + title) !== null) {
+        title = title + " 2";
+      }
+      window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
+    });
+  }
 });
