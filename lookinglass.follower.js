@@ -493,10 +493,9 @@ function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields)
       $('input[name='+item.name.replace("chk", "sc")+']')
       .prop("disabled", false)
       .val("0.00")
-      .attr("type", "number")
+      .attr("type", "range")
       .attr("min", sconti[1])
       .attr("max", sconti[0])
-      .attr("placeholder", '0.00')
       .attr("step", "0.5")
       .change(checkMinMax);
     }
