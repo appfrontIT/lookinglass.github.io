@@ -556,7 +556,8 @@ $(document).ready(function(){
       .arrProdottiVendibili
       .map(function(x){ return parseInt(x.prodotto.substring(1))-1;});
     $("a.link").toArray().forEach(function(item, idx){
-      if(!$.inArray(idx, prodottiVendibiliIndices)) {
+        console.log(item, idx);
+      if($.inArray(idx, prodottiVendibiliIndices) === -1) {
         $(item).removeAttr("href").attr('disabled', 'disabled').css("background", "grey");
       }
     });
