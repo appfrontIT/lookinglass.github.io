@@ -574,6 +574,7 @@ $(document).ready(function(){
           if(garanzieVendibili !== undefined) {
             dataGaranzie.forEach(function(x){
               if($.inArray(x.codice, garanzieVendibili.arrGaranzie) === -1) {
+                debugger;
                 $("input[name="+x.codice_web+"]").get(0).disabled = "disabled";
               }
             });
