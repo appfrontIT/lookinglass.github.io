@@ -552,8 +552,9 @@ $(document).ready(function(){
     });
     break;
   case 'Elenco Prodotti':
-    const profile = getUserProfile();
-    const prodottiVendibiliIndices = profile.arrProdottiVendibili.map(function(x){ return parseInt(x.prodotto.substring(1))-1;});
+    const prodottiVendibiliIndices = getUserProfile()
+      .arrProdottiVendibili
+      .map(function(x){ return parseInt(x.prodotto.substring(1))-1;});
     $("a.link").toArray().forEach(function(item, idx){
       if(!$.inArray(idx, prodottiVendibiliIndices)) {
         $(item).removeAttr("href").attr('disabled', 'disabled').css("background", "grey");
