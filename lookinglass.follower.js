@@ -454,7 +454,7 @@ function assignDiscounts(jsonObject) {
 
   $.ajax({
     dataType: "json",
-    url: "https://lookinglass-backend.herokuapp.com/codici-garanzie.json",
+    url: dataSource + "codici-garanzie.json",
     data: data,
     success: function(data){
       console.log(data);
@@ -520,6 +520,7 @@ function getUserProfile() {
   return JSON.parse(window.sessionStorage.getItem('UserProfile'));
 }
 
+var chosenProdottoVendibile;
 $(document).ready(function(){
   // if(window.location.pathname === "/prodGrpList.do") {
   // }
@@ -556,7 +557,6 @@ $(document).ready(function(){
       .arrProdottiVendibili
       .map(function(x){ return parseInt(x.prodotto.substring(1))-1;});
     $("a.link").toArray().forEach(function(item, idx){
-        console.log(item, idx);
       if($.inArray(idx, prodottiVendibiliIndices) === -1) {
         $(item).removeAttr("href").attr('disabled', 'disabled').css("background", "grey");
       }
@@ -564,7 +564,23 @@ $(document).ready(function(){
 
     break;
   case 'Elenco Garanzie':
-    const profile = getUserProfile();
+    $.get(dataSource + "codici-prodotti.json", function(dataProdotti){
+      $.get(dataSource + "codici-garanzie.json", function(dataGaranzie){
+        const profile = getUserProfile();
+        const codprod = getParameterByName("codprod");
+        const scod = dataProdotti.find(function(x){ return x.codice_web === codprod; });
+        if(scod !== undefined) {
+          const garanzieVendibili = profile.arrProdottiVendibili.find(function(x){ return x.prodotto === scod.codice;});
+          if(garanzieVendibili !== undefined) {
+            dataGaranzie.forEach(function(x){
+              if($.inArray(x.codice, garanzieVendibili.arrGaranzie) === -1) {
+                $("input[name="+x.codice_web+"]").get(0).disabled = "disabled";
+              }
+            });
+          }
+        }
+      });
+    });
 
     break;
   case 'Riepilogo':
