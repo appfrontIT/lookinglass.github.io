@@ -511,7 +511,7 @@ function saveInitialPageInformation() {
   window.sessionStorage.setItem('TimestampISO', (new Date()).toISOString());
 
   $.get(dataSource + "user-profiles/?filter={%22where%22:{%22user%22:%22" + user + "%22}}", function(data){
-    window.sessionStorage.setItem('UserProfile', data[0]);
+    window.sessionStorage.setItem('UserProfile', JSON.stringify(data[0]));
   });
 }
 
@@ -521,9 +521,8 @@ function getUserProfile() {
 }
 
 $(document).ready(function(){
-  if(window.location.pathname === "/prodGrpList.do") {
-    saveInitialPageInformation();
-  }
+  // if(window.location.pathname === "/prodGrpList.do") {
+  // }
   // adds listeners after each page loads
   // the page has to be identified by metro-title,
   // since the url doesn't always change
@@ -544,6 +543,7 @@ $(document).ready(function(){
     });
     break;
   case 'Gruppi Prodotto':
+    saveInitialPageInformation();
     $("td.alternate").click(function(ev){
       if(getUserProfile() === null){
         ev.preventDefault();
@@ -553,6 +553,12 @@ $(document).ready(function(){
     break;
   case 'Elenco Prodotti':
     const profile = getUserProfile();
+    const prodottiVendibiliIndices = profile.arrProdottiVendibili.map(function(x){ return parseInt(x.prodotto.substring(1))-1;});
+    $("a.link").toArray().forEach(function(item, idx){
+      if(!$.inArray(idx, prodottiVendibiliIndices)) {
+        $(item).removeAttr("href").attr('disabled', 'disabled').css("background", "grey");
+      }
+    });
 
     break;
   case 'Elenco Garanzie':
