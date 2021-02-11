@@ -1,14 +1,90 @@
-// assume jQuery is loaded already
 /*jslint es6 */
 /*jslint white: true */
 /*jslint browser */
-/*global window */
-/*global console */
+/*global window, console, $ */ // jQuery is already loaded
 
-"use strict";
+// ##############################
+// ########### UTILS ############
+// ##############################
+
+// PARAMS
 const paginaPrefix = "pagina - ";
 const dataSource = "https://lookinglass-backend.herokuapp.com/";
 
+function checkMinMax(event) {
+  const $that = $(event.target);
+  const max = parseInt($that.attr('max'));
+  const min = parseInt($that.attr('min'));
+  if ($that.val() > max) {
+    $that.val(max);
+  }
+  else if ($that.val() < min) {
+    $that.val(min);
+  }
+}
+// gets parameters from the url
+function getParameterByName(name, url = window.location.href) {
+    name = name.replace(/[\[\]]/g, '\\$&');
+    const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+    const results = regex.exec(url);
+    if (!results) {return null; }
+    if (!results[2]){ return ''; }
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+// for floats with commas
+function ncd(num) {
+  if(num.trim() === "") {
+    return 0;
+  } else {
+    return parseFloat(num.replace(".", "").replace(",", "."));
+  }
+}
+
+function intoPairs(arr, invert = false) {
+  return arr.reduce(function(result, ignore, index, array) {
+    if (index % 2 === 0) {
+      result.push(array.slice(index, index + 2));
+    }
+    return result;
+  }, []).map(function(x){
+    const t = {};
+    if(invert) { t[x[1]] = x[0]; } else { t[x[0]] = x[1]; }
+    return t;
+  });
+}
+
+function isTextOnPage(str) {
+  const ddEl = document.documentElement;
+  const textContent = ddEl.textContent || ddEl.innerText;
+  return textContent.indexOf(str) > -1;
+}
+
+function getSessionIdFromCookies() {
+  return document.cookie
+  .split('; ')
+  .find(function(row){return row.startsWith('JSESSIONID');})
+  .split('=')[1];
+}
+
+// ##############################
+// ######## END UTILS ###########
+// ##############################
+
+function takeFromInput(name) {
+  return $('input[name=' + name + ']').val();
+}
+function takeFromSelect(name) {
+  return $('select[name=' + name + '] option:selected').text();
+}
+function takeTextNextTo(name) {
+  return $("td.formleft:contains('" + name + "')").next().get(0).innerText.trim();
+}
+
+
+// ################################################
+// ## FUNCTIONS SPECIFIC TO AUTOVETTURE PROCESS ###
+// ################################################
 
 function makePage(title, time, info) {
   const data = {};
@@ -26,49 +102,20 @@ function makePage(title, time, info) {
   return data;
 }
 
-
-// Functions with take- are each customed for one page
-
-
-function takeSwitch(title, $) {
-  switch(title) {
-    case 'Elenco Garanzie':
-      return takeElencoGaranzie($);
-    case 'Dati Anagrafici':
-      return takeDatiAnagrafici($);
-    case 'Questionario':
-      return takeQuestionario($);
-    case 'Dati Contratto':
-      return takeDatiContratto($);
-    case 'Attestato di Rischio':
-      if(isTextOnPage('Polizza di riferimento Dallbogg')){
-        return takeAttestatoDiRischio($);
-      } else {
-        return takeAttestatoDiRischioSummary($);
-      }
-    case 'Riepilogo Garanzie':
-      return takeRiepilogoGaranzie($);
-    case 'Prodotto AUTOVETTURE - Dati Integrativi':
-      return takeDatiIntegrativi($);
-    default:
-      console.error("Some Unknown page!");
-      return {};
-  }
-}
-
-function takeRiepilogoGenerale($) {
-  var generale = Object.fromEntries(
-    $('td.formLeft').map(function(_i,x){
-      var j = {};
+function takeRiepilogoGenerale() {
+  const generale = Object.fromEntries(
+    $('td.formLeft').map(function(ignore,x){
+      const j = {};
       j[$(x).text().slice(0,-1)] = $(x).next().text();
       return j;
     })
     .toArray()
   );
-  var rate = Object.fromEntries(
+
+  const rate = Object.fromEntries(
     $('td.formleft').toArray().slice(1,8).map(function(x){
-      var sibs = $(x).siblings();
-      var pair = [ncd(sibs[0].innerText), ncd(sibs[1].innerText)];
+      const sibs = $(x).siblings();
+      const pair = [ncd(sibs[0].innerText), ncd(sibs[1].innerText)];
       return [$(x).text().replace(/\./g, ''), pair];
     })
   );
@@ -78,12 +125,8 @@ function takeRiepilogoGenerale($) {
   return data;
 }
 
-function takeDatiIntegrativi($) {
-  function takeTextNextTo(label) {
-    return $("td.formleft:contains('"+label+"')").next().get(0).innerText;
-  }
-  var data = {};
-
+function takeDatiIntegrativi() {
+  const data = {};
   data.DescrizioneVeicolo = $('input[name=dt_009]').val();
   data.TargaVeicolo = takeTextNextTo('TARGA VEICOLO');
   data.PotenzaKw = parseInt(takeTextNextTo('POTENZA KW (P.2)'));
@@ -91,35 +134,55 @@ function takeDatiIntegrativi($) {
   data.Nominativo = takeTextNextTo('NOMINATIVO');
   data.ComuneIntPra = takeTextNextTo('COMUNE');
   data.ProvinciaIntPra = takeTextNextTo('PROVINCIA');
-
   return data;
 }
 
-function takeQuestionario($) {
+function takeQuestionario() {
   function child(x, idx) {
-    var data = {};
-    var tds = $(x).children();
-    if(idx%2==0) {
-        data.label = tds[0].innerText;
-        data.checkboxes = $(tds[1]).children().toArray().map(function(x){
-          return {
-            "id": x.id,
-            "name": x.name,
-            "value": x.value,
-            "checked": x.checked
-          };
-        }).filter(function(x){ return x.id != "";});
+    const data = {};
+    const tds = $(x).children();
+    if(idx % 2===0) {
+      data.label = tds[0].innerText;
+      data.checkboxes = $(tds[1])
+        .children()
+        .toArray()
+        .map(function(x){
+          return {"id": x.id, "name": x.name,
+            "value": x.value, "checked": x.checked
+        };
+      }).filter(function(x){ return x.id !== "";});
     }
     return data;
   }
 
-  var data = {};
-  var trs = $('form[name=form0] tr').toArray();
-  data.Tabella = $('form[name=form0] tr').toArray().slice(2,10).map(child).filter(function(x){ return x!={};});
+  const tab = $('form[name=form0] tr')
+    .toArray()
+    .slice(2,10)
+    .map(child).filter(function(x){
+      return !$.isEmptyObject(x);
+    });
+
+  return {
+    Tabella: tab
+  };
+}
+
+function parsePremioNetto() {
+  return ncd($("td.labelB").last().text().substring(7).trim());
+}
+
+function takeDatiAnagrafici() {
+  const fields = $('tr > td.formleft, tr > td.label')
+    .toArray()
+    .map(function(x){ return x.innerText; });
+
+  const data = {};
+  data.DatiContraente = intoPairs(fields.slice(14));
+  data.DatiProprietario = intoPairs(fields.slice(15, 28), true);
   return data;
 }
 
-function takeRiepilogoGaranzie($) {
+function takeRiepilogoGaranzie() {
   function child(x) {
     const tds = $(x).children();
     const chbx = tds[0].firstChild;
@@ -145,8 +208,7 @@ function takeRiepilogoGaranzie($) {
   return data;
 }
 
-function takeElencoGaranzie($) {
-  function takeFromInput(name) {return $('input[name='+name+']').val();}
+function takeElencoGaranzie() {
   function child(x) {
     const tds = $(x).children();
     const chbx = tds[0].firstChild;
@@ -161,15 +223,14 @@ function takeElencoGaranzie($) {
     return data;
   }
 
-  var data = {};
+  const data = {};
   data.Tabella = $('form[name=form0] tr').toArray().slice(1,8).map(child);
   data.CodiceAutorizzazione = takeFromInput('PN03_NUMERO_AUTOR');
   return data;
 }
 
-function takeAttestatoDiRischio($) {
-  function takeFromInput(name) {return $('input[name='+name+']').val();}
-  var data = {};
+function takeAttestatoDiRischio() {
+  const data = {};
   data.siglaTarga = takeFromInput('siglaTarga');
   data.numTarga = takeFromInput('numTarga');
   data.siglaTargaATR = takeFromInput('siglaTargaATR');
@@ -180,19 +241,16 @@ function takeAttestatoDiRischio($) {
   return data;
 }
 
-function takeAttestatoDiRischioSummary($) {
-  function takeFromSelect(name) {return $('select[name='+name+'] option:selected').text();}
-  function takeTextNextTo(label) {
-    return $("td.formleft:contains('"+label+"')").next().get(0).innerText;
-  }
+function takeAttestatoDiRischioSummary() {
   function takeRow(label) {
     return $(label).toArray().map(function(x){
-        var t = {};
+        const t = {};
         t[x.id] = x.value;
         return t;
     });
   }
-  var data = {};
+
+  const data = {};
   data.compagniaProv = takeFromSelect('compagniaProv');
   data.Targa = takeTextNextTo('Targa');
   data.TipoEmissione = takeTextNextTo('Tipo Emissione');
@@ -209,19 +267,13 @@ function takeAttestatoDiRischioSummary($) {
   return data;
 }
 
-function takePremioNetto($) {
-  return ncd($("td.labelB").last().text().substring(7).trim());
-}
 
-function takeProdottoAutovetture($) {
-  function takeFromInput(name) {return $('input[name='+name+']').val();}
-  function takeTextNextTo(label) {
-    return $("td.formleft:contains('"+label+"')").next().get(0).innerText.trim();
-  }
+function takeProdottoAutovetture() {
   const data = {};
-  if($(".labelB").first().next().text().trim() === "ASSISTENZA AUTO GOLD") {
+  const nameOfGaranzia = $(".labelB").first().next().text().trim();
+  if(nameOfGaranzia === "ASSISTENZA AUTO GOLD") {
     data.Garanzia = "ASSISTENZA AUTO GOLD";
-    data.Premio = takePremioNetto($);
+    data.Premio = parsePremioNetto();
     return data;
   }
   data.ClassificazioneVeicolo = takeTextNextTo('CLASSIFICAZIONE VEICOLO');
@@ -242,17 +294,12 @@ function takeProdottoAutovetture($) {
   data.NumSinistriInAdr = takeTextNextTo('NUM. SINISTRI IN ADR');
   data.AnniConsecutivi = ncd(takeTextNextTo('ANNI CONSECUTIVI SENZA SX'));
   data.RinunciaRivalsa = takeFromInput('dt_945');
-  data.PremioNetto = takePremioNetto($);
+  data.PremioNetto = parsePremioNetto();
 
   return data;
 }
 
-function takeDatiContratto($) {
-  function takeFromInput(name) {return $('input[name='+name+']').val();}
-  function takeFromSelect(name) {return $('select[name='+name+'] option:selected').text();}
-  function takeTextNextTo(label) {
-    return $("td.formleft:contains('"+label+"')").next().get(0).innerText;
-  }
+function takeDatiContratto() {
   const data = {};
   data.Decorrenza = takeFromInput('dataDecor');
   data.Ora = parseInt(takeFromInput('oraDecor'));
@@ -278,78 +325,11 @@ function takeDatiContratto($) {
   return data;
 }
 
-function isTextOnPage(str) {
-  const textContent = document.documentElement.textContent || document.documentElement.innerText;
-  return textContent.indexOf(str) > -1;
+function getPageFromStorage(name) {
+  return JSON.parse(window.sessionStorage.getItem(paginaPrefix + name));
 }
 
-function getParameterByName(name, url = window.location.href) {
-    name = name.replace(/[\[\]]/g, '\\$&');
-    const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
-    const results = regex.exec(url);
-    if (!results) {return null; }
-    if (!results[2]){ return ''; }
-    return decodeURIComponent(results[2].replace(/\+/g, ' '));
-}
-
-function takeDatiAnagrafici($) {
-  var arr = $('tr > td.formleft, tr > td.label')
-    .toArray()
-    .map(function(x){ return x.innerText; });
-
-  const data = {};
-  data.DatiContraente = intoPairs(arr.slice(14));
-  data.DatiProprietario = intoPairsInvert(arr.slice(15, 28));
-  return data;
-}
-
-function intoPairs(arr) {
-  return arr.reduce(function(result, value, index, array) {
-    if (index % 2 === 0) {
-      result.push(array.slice(index, index + 2));
-    }
-    return result;
-  }, []).map(function(x){
-    var t = {};
-    t[x[0]] = x[1];
-    return t;
-  });
-}
-
-function intoPairsInvert(arr) {
-  return arr.reduce(function(result, value, index, array) {
-    if (index % 2 === 0) {
-      result.push(array.slice(index, index + 2));
-    }
-    return result;
-  }, []).map(function(x){
-    var t = {};
-    t[x[1]] = x[0];
-    return t;
-  });
-}
-
-// for floats with commas
-function ncd(num) {
-  if(num.trim() === "") {
-    return 0;
-  } else {
-    return parseFloat(num.replace(".", "").replace(",", "."));
-  }
-}
-
-function getSessionIdFromCookies() {
-  return document.cookie
-  .split('; ')
-  .find(function(row){return row.startsWith('JSESSIONID');})
-  .split('=')[1];
-}
-
-function getJsonFromSessionStorage(name) {
-  return JSON.parse(window.sessionStorage.getItem(name));
-}
-
-function save() {
+function groupFullObjectsAsJson() {
   const generalFields = {
     "user": window.sessionStorage.getItem('User'),
     "session_id": window.sessionStorage.getItem('SessionID'),
@@ -369,7 +349,7 @@ function save() {
   ];
 
   const pages = autovetturePagine.map(function(x, i){
-    const retrievedJson = getJsonFromSessionStorage(paginaPrefix + x);
+    const retrievedJson = getPageFromStorage(x);
     if(retrievedJson) {
       return Object.assign(retrievedJson, {"id": i});
     }
@@ -379,25 +359,22 @@ function save() {
 
   return JSON.stringify(Object.assign(generalFields, {"pagine": pages}));
 }
-var jsonText;
-function sendToServer() {
-  jsonText = save();
-  console.log(jsonText);
 
-  $.ajax({
+function sendToServer() {
+  $.ajax({ // Content-Type necessary
     type: "POST",
     contentType: 'application/json',
     dataType: "json",
-    url: "https://lookinglass-backend.herokuapp.com/navigation-actions/",
-    data: jsonText,
+    url: dataSource + "navigation-actions",
+    data: groupFullObjectsAsJson(),
     success: function(data){
       console.log(data);
     },
     error: function(qXHR, status, errorThrown) {
       console.log(qXHR, status, errorThrown);
+      window.alert("Error on sending the session");
     }
   });
-  // window.sessionStorage.setItem('FullObject', JSON.stringify(jsonObject));
 }
 
 function checkCU(sinistri, cuPermessi) {
@@ -408,22 +385,40 @@ function checkCU(sinistri, cuPermessi) {
   && sinistri[0] <= cuPermessi[4];
 }
 
+function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields) {
+  elencoGaranzie.forEach(function(item) {
+    const codGaranzia = fields[item.name];
+    if(item.Sel && ($.inArray(codGaranzia, garanzieVendibili) !== -1)) {
+      const sconti = getSconto(codGaranzia);
+      $('input[name='+item.name.replace("chk", "sc")+']')
+      .prop("disabled", false)
+      .val("0.00")
+      .attr({
+        type: 'range',
+        min: sconti[1],
+        max: sconti[0],
+        step: 0.5
+      })
+      .change(checkMinMax);
+    }
+  });
+}
+
 // json function
 function assignDiscounts(jsonObject) {
   console.log(jsonObject);
-  // disable all inputs
+  // disable all inputs first
   $('.input5').prop('disabled', true);
 
   // retrieves user info from the SessionStorage
-  const datiAnagrafici   = getJsonFromSessionStorage(paginaPrefix + 'Dati Anagrafici');
-  const prodAutovetture  = getJsonFromSessionStorage(paginaPrefix + 'Prodotto AUTOVETTURE');
-  const attestatoRischio = getJsonFromSessionStorage(paginaPrefix + 'Attestato di Rischio 2');
-  const elencoGaranzie   = getJsonFromSessionStorage(paginaPrefix + 'Elenco Garanzie').form.Tabella;
-
+  const datiAnagrafici   = getPageFromStorage('Dati Anagrafici');
+  const prodAutovetture  = getPageFromStorage('Prodotto AUTOVETTURE');
+  const attestatoRischio = getPageFromStorage('Attestato di Rischio 2');
+  const elencoGaranzie   = getPageFromStorage('Elenco Garanzie').form.Tabella;
+  const chosenProdottoVendibile = window.sessionStorage.getItem("CodiceProdotto");
   const provincia = datiAnagrafici.form.DatiContraente[6].Provincia;
   const etaContraente = prodAutovetture.form.Eta;
   const etaVeicolo = prodAutovetture.form.EtaVeicolo;
-  const chosenProdottoVendibile = 'S1';
   // slice(0,-1) because the last one has letters
   const sinistri1 = attestatoRischio.form.SinistriPagatiRespParit.slice(0, -1).map(function(x){ return parseInt(Object.values(x)[0]);});
   const sinistriTotale = attestatoRischio.form.SinistriPagatiRespPrinc.slice(0, -1).map(function(x, i){ return parseInt(Object.values(x)[0]) + sinistri1[i];});
@@ -432,9 +427,13 @@ function assignDiscounts(jsonObject) {
     .arrProvince
     .filter(function(x){ return x.sconto; })
     .map(function(x){ return x.prov; });
+
   siglePermesse.push('RM');
 
-  const garanzieVendibili = jsonObject.arrProdottiVendibili.find(function(x){ return x.prodotto === chosenProdottoVendibile;}).arrGaranzie;
+  const garanzieVendibili = jsonObject
+    .arrProdottiVendibili
+    .find(function(x){ return x.prodotto === chosenProdottoVendibile;})
+    .arrGaranzie;
 
   const cuPermessi = jsonObject.arrCU;
   const etaVeicoloMassimaPermessa = jsonObject.etaMaxVeicolo;
@@ -444,7 +443,7 @@ function assignDiscounts(jsonObject) {
     const sconto = jsonObject.arrSconti.find(function(x) {
       return x.garanzia === codGaranzia;
     });
-    if(sconto == -1) {
+    if(sconto === -1) {
       return [0,0];
     }
     else {
@@ -452,77 +451,111 @@ function assignDiscounts(jsonObject) {
     }
   }
 
-  $.ajax({
-    dataType: "json",
-    url: dataSource + "codici-garanzie.json",
-    data: data,
-    success: function(data){
-      console.log(data);
-      const fields = Object.fromEntries(data.map(function(x){
-        return [x.codice_web, x.codice];
-      }));
-      // checking if conditions are respected
-      if(($.inArray(provincia, siglePermesse) !== -1)
-        && (etaContraente <= etaMassimaPermessa)
-        && (etaVeicolo <= etaVeicoloMassimaPermessa)
-        && checkCU(sinistriTotale, cuPermessi) // to implement
-      ) {
-        activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields);
+  const codiciGaranzie = JSON.parse(window.sessionStorage.getItem("CodiciGaranzie"));
+  const fields = Object.fromEntries(
+    codiciGaranzie.map(function(x){
+      return [x.codice_web, x.codice];
+    })
+  );
+  // checking if conditions are respected
+  if(($.inArray(provincia, siglePermesse) !== -1)
+    && (etaContraente <= etaMassimaPermessa)
+    && (etaVeicolo <= etaVeicoloMassimaPermessa)
+    && checkCU(sinistriTotale, cuPermessi) // to implement
+  ) {
+    activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields);
+  }
+}
+
+function whichAutovetturePage(title) {
+  switch(title) {
+    case 'Elenco Garanzie':
+      return takeElencoGaranzie();
+    case 'Dati Anagrafici':
+      return takeDatiAnagrafici();
+    case 'Questionario':
+      return takeQuestionario();
+    case 'Dati Contratto':
+      return takeDatiContratto();
+    case 'Attestato di Rischio':
+      if(isTextOnPage('Polizza di riferimento Dallbogg')){
+        return takeAttestatoDiRischio();
+      } else {
+        return takeAttestatoDiRischioSummary();
       }
-    }
-  });
-}
-
-function checkMinMax(event) {
-  const $that = $(event.target);
-  const max = parseInt($that.attr('max'));
-  const min = parseInt($that.attr('min'));
-  if ($that.val() > max) {
-    $that.val(max);
-  }
-  else if ($that.val() < min) {
-    $that.val(min);
+    case 'Riepilogo Garanzie':
+      return takeRiepilogoGaranzie();
+    case 'Prodotto AUTOVETTURE - Dati Integrativi':
+      return takeDatiIntegrativi();
+    default:
+      console.error("Wrong page title");
+      return {};
   }
 }
-
-function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields) {
-  elencoGaranzie.forEach(function(item, i) {
-    const codGaranzia = fields[item.name];
-    if(item.Sel && ($.inArray(codGaranzia, garanzieVendibili) !== -1)) {
-      const sconti = getSconto(codGaranzia);
-      $('input[name='+item.name.replace("chk", "sc")+']')
-      .prop("disabled", false)
-      .val("0.00")
-      .attr("type", "range")
-      .attr("min", sconti[1])
-      .attr("max", sconti[0])
-      .attr("step", "0.5")
-      .change(checkMinMax);
-    }
-  });
-}
-
-function saveInitialPageInformation() {
-  window.sessionStorage.clear();
-  const user = window.localStorage.getItem('lookinglassUserID');
-  window.sessionStorage.setItem('User', user);
-  window.sessionStorage.setItem('SessionID', getSessionIdFromCookies());
-  window.sessionStorage.setItem('TimestampISO', (new Date()).toISOString());
-
-  $.get(dataSource + "user-profiles/?filter={%22where%22:{%22user%22:%22" + user + "%22}}", function(data){
-    window.sessionStorage.setItem('UserProfile', JSON.stringify(data[0]));
-  });
-}
-
 
 function getUserProfile() {
   return JSON.parse(window.sessionStorage.getItem('UserProfile'));
 }
 
-var chosenProdottoVendibile;
+function setStorageKey(key, val) {
+  window.sessionStorage.setItem(key, val);
+}
+
+function selectGaranzie(dataProdotti, dataGaranzie) {
+  const profile = getUserProfile();
+  const codprod = getParameterByName("codprod");
+  const scod = dataProdotti.find(function(x){ return x.codice_web === codprod; });
+  if(scod !== undefined) {
+    setStorageKey("CodiceProdotto", scod.codice);
+    const garanzieVendibili = profile.arrProdottiVendibili.find(function(x){ return x.prodotto === scod.codice;});
+    if(garanzieVendibili !== undefined) {
+      dataGaranzie.forEach(function(x){
+        if($.inArray(x.codice, garanzieVendibili.arrGaranzie) === -1) {
+          const $input = $("input[name="+x.codice_web+"]").get(0);
+          if($input !== undefined) {
+            $input.disabled = "disabled";
+          }
+        }
+      });
+    }
+  }
+}
+// ending action
+function endSessionTaking(title, ts) {
+  const infoGeneral = takeRiepilogoGenerale();
+  const jsonObject = makePage(title, ts.toISOString(), infoGeneral);
+  setStorageKey(paginaPrefix + title, JSON.stringify(jsonObject));
+  sendToServer();
+}
+
+function getProdottiVendibiliIndices() {
+  return getUserProfile()
+    .arrProdottiVendibili
+    .map(function(x){ return parseInt(x.prodotto.substring(1))-1;});
+}
+
+function saveInitialPageInformation() {
+  window.sessionStorage.clear();
+  const user = window.localStorage.getItem('lookinglassUserID');
+  setStorageKey('User', user);
+  setStorageKey('SessionID', getSessionIdFromCookies());
+  setStorageKey('TimestampISO', (new Date()).toISOString());
+
+  $.get(dataSource + "user-profiles/?filter={%22where%22:{%22user%22:%22" + user + "%22}}", function(data){
+    setStorageKey('UserProfile', JSON.stringify(data[0]));
+  });
+}
+
+function selectProdottiVendibili() {
+  const idxs = getProdottiVendibiliIndices();
+  $("a.link").toArray().forEach(function(item, idx){
+    if($.inArray(idx, idxs) === -1) {
+      $(item).removeAttr("href").attr('disabled', 'disabled').css("background", "grey");
+    }
+  });
+}
+
 $(document).ready(function(){
-  // if(window.location.pathname === "/prodGrpList.do") {
-  // }
   // adds listeners after each page loads
   // the page has to be identified by metro-title,
   // since the url doesn't always change
@@ -534,16 +567,17 @@ $(document).ready(function(){
   case "Prodotto AUTOVETTURE":
     // this works with the ( > ) button
     $("a.linkball").last().click(function() {
-      const info = takeProdottoAutovetture($);
+      const info = takeProdottoAutovetture();
       const jsonObj = makePage(title, timestamp.toISOString(), info);
       if(window.sessionStorage.getItem(paginaPrefix + title) !== null) {
         title = title + " 2";
       }
-      window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
+      setStorageKey(paginaPrefix + title, JSON.stringify(jsonObj));
     });
     break;
   case 'Gruppi Prodotto':
     saveInitialPageInformation();
+
     $("td.alternate").click(function(ev){
       if(getUserProfile() === null){
         ev.preventDefault();
@@ -552,67 +586,31 @@ $(document).ready(function(){
     });
     break;
   case 'Elenco Prodotti':
-    const prodottiVendibiliIndices = getUserProfile()
-      .arrProdottiVendibili
-      .map(function(x){ return parseInt(x.prodotto.substring(1))-1;});
-    $("a.link").toArray().forEach(function(item, idx){
-      if($.inArray(idx, prodottiVendibiliIndices) === -1) {
-        $(item).removeAttr("href").attr('disabled', 'disabled').css("background", "grey");
-      }
-    });
-
-    break;
-  case 'Elenco Garanzie':
-    $.get(dataSource + "codici-prodotti.json", function(dataProdotti){
-      $.get(dataSource + "codici-garanzie.json", function(dataGaranzie){
-        const profile = getUserProfile();
-        const codprod = getParameterByName("codprod");
-        const scod = dataProdotti.find(function(x){ return x.codice_web === codprod; });
-        if(scod !== undefined) {
-          const garanzieVendibili = profile.arrProdottiVendibili.find(function(x){ return x.prodotto === scod.codice;});
-          if(garanzieVendibili !== undefined) {
-            dataGaranzie.forEach(function(x){
-              if($.inArray(x.codice, garanzieVendibili.arrGaranzie) === -1) {
-                const $input = $("input[name="+x.codice_web+"]").get(0);
-                if($input !== undefined) {
-                  $input.disabled = "disabled";
-                }
-              }
-            });
-          }
-        }
-      });
-    });
-    // assuming all other submit buttons are called "Prosegui"
-    $("a:contains('Prosegui')").click(function(e) {
-      const info = takeSwitch(title, $);
-      const jsonObj = makePage(title, timestamp.toISOString(), info);
-      if(window.sessionStorage.getItem(paginaPrefix + title) !== null) {
-        title = title + " 2";
-      }
-      window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
-    });
-
+    selectProdottiVendibili();
     break;
   case 'Riepilogo':
-    // ending action
-    const info = takeRiepilogoGenerale($);
-    const jsonObj = makePage(title, timestamp.toISOString(), info);
-    window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
-    sendToServer();
+    endSessionTaking(title, timestamp);
+    break;
   case 'Riepilogo Garanzie':
-    // ending action
     assignDiscounts(JSON.parse(window.sessionStorage.getItem('UserProfile')));
     break;
   default:
+    if(title === 'Elenco Garanzie') {
+      $.get(dataSource + "codici-prodotti.json", function(dataProdotti){
+        $.get(dataSource + "codici-garanzie.json", function(dataGaranzie){
+          setStorageKey("CodiciGaranzie", JSON.stringify(dataGaranzie));
+          selectGaranzie(dataProdotti, dataGaranzie);
+        });
+      });
+    }
     // assuming all other submit buttons are called "Prosegui"
-    $("a:contains('Prosegui')").click(function(e) {
-      const info = takeSwitch(title, $);
+    $("a:contains('Prosegui')").click(function() {
+      const info = whichAutovetturePage(title, $);
       const jsonObj = makePage(title, timestamp.toISOString(), info);
       if(window.sessionStorage.getItem(paginaPrefix + title) !== null) {
         title = title + " 2";
       }
-      window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
+      setStorageKey(paginaPrefix + title, JSON.stringify(jsonObj));
     });
   }
 });
