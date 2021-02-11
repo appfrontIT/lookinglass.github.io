@@ -584,6 +584,15 @@ $(document).ready(function(){
         }
       });
     });
+    // assuming all other submit buttons are called "Prosegui"
+    $("a:contains('Prosegui')").click(function(e) {
+      const info = takeSwitch(title, $);
+      const jsonObj = makePage(title, timestamp.toISOString(), info);
+      if(window.sessionStorage.getItem(paginaPrefix + title) !== null) {
+        title = title + " 2";
+      }
+      window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
+    });
 
     break;
   case 'Riepilogo':
