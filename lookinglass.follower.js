@@ -1,9 +1,30 @@
 // assume jQuery is loaded already
 /*jslint es6 */
-"use strict";
+/*jslint white: true */
+/*jslint browser */
+/*global window */
+/*global console */
 
+"use strict";
 const paginaPrefix = "pagina - ";
 const dataSource = "https://lookinglass-backend.herokuapp.com/";
+
+
+function makePage(title, time, info) {
+  const data = {};
+  data.url = window.location.href;
+  data.inizio = time;
+  data.classePagina = window.location.pathname.substring(1);
+  data.sottoClassePagina = title;
+  if(data.classePagina === "garanzieList.do") {
+    data.codprod = parseInt(getParameterByName('codprod'));
+  }
+  if(data.classePagina === "prodList.do") {
+    data.codgruppo = parseInt(getParameterByName('codgruppo'));
+  }
+  data.form = info;
+  return data;
+}
 
 function savePageInformation($) {
   // the page has to be identified by metro-title,
@@ -11,15 +32,22 @@ function savePageInformation($) {
   var title = $('h2.metro-title').text().trim(); // must be var
   const timestamp = new Date();
   console.log("title: " + title);
-  if(title == "Prodotto AUTOVETTURE") {
+  if(title === "Prodotto AUTOVETTURE") {
     // this works with the ( > ) button
-    $("a.linkball").last().click(function(e) {
+    $("a.linkball").last().click(function() {
       const info = takeProdottoAutovetture($);
       const jsonObj = makePage(title, timestamp.toISOString(), info);
       if(window.sessionStorage.getItem(paginaPrefix + title) !== null) {
         title = title + " 2";
       }
       window.sessionStorage.setItem(paginaPrefix + title, JSON.stringify(jsonObj));
+    });
+  } else if(title === 'Gruppi Prodotto') {
+    $("td.alternate").click(function(ev){
+      ev.preventDefault();
+      if(window.sessionStorage.getItem("UserProfile") === null){
+        window.alert("still downloading UserProfile");
+      }
     });
   } else if(title === 'Riepilogo') {
     // ending action
@@ -29,8 +57,7 @@ function savePageInformation($) {
     sendToServer();
   } else if(title === 'Riepilogo Garanzie') {
     // ending action
-    const user = window.sessionStorage.getItem('User');
-    $.get(dataSource + "user-profiles/?filter={%22where%22:{%22user%22:%22" + user + "%22}}", assignDiscounts);
+    assignDiscounts(JSON.parse(window.sessionStorage.getItem('UserProfile')));
   } else {
     // assuming all other submit buttons are called "Prosegui"
     $("a:contains('Prosegui')").click(function(e) {
@@ -47,21 +74,6 @@ function savePageInformation($) {
 
 // Functions with take- are each customed for one page
 
-function makePage(title, time, info, param1) {
-  const data = {};
-  data.url = window.location.href;
-  data.inizio = time;
-  data.classePagina = window.location.pathname.substring(1);
-  data.sottoClassePagina = title;
-  if(data.classePagina === "garanzieList.do") {
-    data.codprod = parseInt(getParameterByName('codprod'));
-  }
-  if(data.classePagina === "prodList.do") {
-    data.codgruppo = parseInt(getParameterByName('codgruppo'));
-  }
-  data.form = info;
-  return data;
-}
 
 function takeSwitch(title, $) {
   switch(title) {
@@ -312,9 +324,8 @@ function takeDatiContratto($) {
 }
 
 function isTextOnPage(str) {
-  return ((
-    document.documentElement.textContent || document.documentElement.innerText
-  ).indexOf(str)) > -1;
+  const textContent = document.documentElement.textContent || document.documentElement.innerText;
+  return textContent.indexOf(str) > -1;
 }
 
 function getParameterByName(name, url = window.location.href) {
@@ -338,12 +349,12 @@ function takeDatiAnagrafici($) {
 }
 
 function intoPairs(arr) {
-  var groups = [];
-  for(var i = 0; i < arr.length; i += 2) {
-    groups.push(arr.slice(i, i + 2));
-  }
-
-  return groups.map(function(x){
+  arr.reduce(function(result, value, index, array) {
+    if (index % 2 === 0) {
+      result.push(array.slice(index, index + 2));
+    }
+    return result;
+  }, []).map(function(x){
     var t = {};
     t[x[0]] = x[1];
     return t;
@@ -351,13 +362,16 @@ function intoPairs(arr) {
 }
 
 function intoPairsInvert(arr) {
-  var groups = [];
-
-  for(var i = 0; i < arr.length; i += 2) {
-    groups.push(arr.slice(i, i + 2));
-  }
-
-  return groups.map(function(x){ var t = {}; t[x[1]] = x[0]; return t;});
+  arr.reduce(function(result, value, index, array) {
+    if (index % 2 === 0) {
+      result.push(array.slice(index, index + 2));
+    }
+    return result;
+  }, []).map(function(x){
+    var t = {};
+    t[x[1]] = x[0];
+    return t;
+  });
 }
 
 // for floats with commas
@@ -372,7 +386,7 @@ function ncd(num) {
 function getSessionIdFromCookies() {
   return document.cookie
   .split('; ')
-  .find(row => row.startsWith('JSESSIONID'))
+  .find(function(row){return row.startsWith('JSESSIONID');})
   .split('=')[1];
 }
 
@@ -387,7 +401,7 @@ function save() {
     "timestamp_iso": window.sessionStorage.getItem('TimestampISO')
   };
 
-  const pages = [
+  const autovetturePagine = [
     'Elenco Garanzie',
     'Dati Anagrafici',
     'Questionario',
@@ -397,7 +411,9 @@ function save() {
     'Prodotto AUTOVETTURE', 'Prodotto AUTOVETTURE 2',
     'Prodotto AUTOVETTURE - Dati Integrativi',
     'Riepilogo'
-  ].map(function(x, i){
+  ];
+
+  const pages = autovetturePagine.map(function(x, i){
     const retrievedJson = getJsonFromSessionStorage(paginaPrefix + x);
     if(retrievedJson) {
       return Object.assign(retrievedJson, {"id": i});
@@ -438,8 +454,7 @@ function checkCU(sinistri, cuPermessi) {
 }
 
 // json function
-function assignDiscounts(data) {
-  const jsonObject = data[0];
+function assignDiscounts(jsonObject) {
   console.log(jsonObject);
   // disable all inputs
   $('.input5').prop('disabled', true);
@@ -455,8 +470,8 @@ function assignDiscounts(data) {
   const etaVeicolo = prodAutovetture.form.EtaVeicolo;
   const chosenProdottoVendibile = 'S1';
   // slice(0,-1) because the last one has letters
-  const sinistri1 = attestatoRischio.form.SinistriPagatiRespParit.slice(0, -1).map(function(x){ return parseInt(Object.values(x)[0]);})
-  const sinistriTotale = attestatoRischio.form.SinistriPagatiRespPrinc.slice(0, -1).map(function(x, i){ return parseInt(Object.values(x)[0]) + sinistri1[i];})
+  const sinistri1 = attestatoRischio.form.SinistriPagatiRespParit.slice(0, -1).map(function(x){ return parseInt(Object.values(x)[0]);});
+  const sinistriTotale = attestatoRischio.form.SinistriPagatiRespPrinc.slice(0, -1).map(function(x, i){ return parseInt(Object.values(x)[0]) + sinistri1[i];});
 
   const siglePermesse = jsonObject
     .arrProvince
@@ -474,10 +489,12 @@ function assignDiscounts(data) {
     const sconto = jsonObject.arrSconti.find(function(x) {
       return x.garanzia === codGaranzia;
     });
-    if(sconto == -1)
+    if(sconto == -1) {
       return [0,0];
-    else
+    }
+    else {
       return [sconto.scontoMax, sconto.scontoMin];
+    }
   }
 
   $.ajax({
@@ -487,7 +504,7 @@ function assignDiscounts(data) {
     success: function(data){
       console.log(data);
       const fields = Object.fromEntries(data.map(function(x){
-        return [x["codice_web"], x["codice"]];
+        return [x.codice_web, x.codice];
       }));
       // checking if conditions are respected
       if(($.inArray(provincia, siglePermesse) !== -1)
@@ -501,13 +518,16 @@ function assignDiscounts(data) {
   });
 }
 
-function checkMinMax() {
-  const max = parseInt($(this).attr('max'));
-  const min = parseInt($(this).attr('min'));
-  if ($(this).val() > max)
-    $(this).val(max);
-  else if ($(this).val() < min)
-    $(this).val(min);
+function checkMinMax(event) {
+  const $that = $(event.target);
+  const max = parseInt($that.attr('max'));
+  const min = parseInt($that.attr('min'));
+  if ($that.val() > max) {
+    $that.val(max);
+  }
+  else if ($that.val() < min) {
+    $that.val(min);
+  }
 }
 
 function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields) {
@@ -530,11 +550,15 @@ function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields)
 
 function saveInitialPageInformation() {
   window.sessionStorage.clear();
-  window.sessionStorage.setItem('User', window.localStorage.getItem('lookinglassUserID'));
+  const user = window.localStorage.getItem('lookinglassUserID');
+  window.sessionStorage.setItem('User', user);
   window.sessionStorage.setItem('SessionID', getSessionIdFromCookies());
   window.sessionStorage.setItem('TimestampISO', (new Date()).toISOString());
-}
 
+  $.get(dataSource + "user-profiles/?filter={%22where%22:{%22user%22:%22" + user + "%22}}", function(data){
+    window.sessionStorage.setItem('UserProfile', data[0]);
+  });
+}
 $(document).ready(function(){
   if(window.location.pathname === "/prodGrpList.do") {
     saveInitialPageInformation();
