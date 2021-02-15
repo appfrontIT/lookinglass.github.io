@@ -448,8 +448,8 @@ function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields)
       })
       .change(checkMinMax)
       .change(updateValue)
-      .before('<p><span style="float:left">'+sconti[1]+'%</span> <span style="float:right">'+sconti[0]+'%</span></p>')
-      .after('<p id="state_' + itemName + '">0%</p>');
+      .before('<p style="font-size:14px;"><span style="float:left">'+sconti[1]+'%</span> <span style="float:right">'+sconti[0]+'%</span></p>')
+      .after('<p id="state_' + itemName + '" style="font-size:14px;">0%</p>');
     }
   });
 }
