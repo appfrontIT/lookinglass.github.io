@@ -29,7 +29,7 @@ function updateValue(event) {
   const name = $that.prop("name");
   const $stateValue = $("p#state_"+name);
   if($stateValue.length === 1) {
-    $stateValue.text(val);
+    $stateValue.text(val + "%");
   }
 
 }
@@ -448,8 +448,8 @@ function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields)
       })
       .change(checkMinMax)
       .change(updateValue)
-      .before('<p><span style="float:left">'+sconti[1]+'%</span> <span style="float:right">'+sconti[0]+'%</span></p>' )
-      .after('<p id="state_' + itemName + '"></p>');
+      .before('<p><span style="float:left">'+sconti[1]+'%</span> <span style="float:right">'+sconti[0]+'%</span></p>')
+      .after('<p id="state_' + itemName + '">0%</p>');
     }
   });
 }
