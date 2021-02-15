@@ -32,7 +32,8 @@ function getParameterByName(name, url = window.location.href) {
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
-// for floats with commas
+// treats the input numbers
+// and recognizes where they
 function ncd(num) {
   if(num.trim() === "") {
     return 0;
@@ -71,16 +72,43 @@ function getSessionIdFromCookies() {
 // ######## END UTILS ###########
 // ##############################
 
-function takeFromInput(name) {
+// ############################
+// ## SESSION STORAGE UTILS ###
+// ############################
+
+function clearStorage() {
+  return window.sessionStorage.clear();
+}
+
+function getFromStorage(key) {
+  return window.sessionStorage.getItem(key);
+}
+
+function setStorageKey(key, val) {
+  window.sessionStorage.setItem(key, val);
+}
+
+function getJsonValue(key) {
+  return JSON.parse(getFromStorage(key));
+}
+
+function getPageFromStorage(key) {
+  return getJsonValue(paginaPrefix + key);
+}
+
+// ################################
+// ## END SESSION STORAGE UTILS ###
+// ################################
+
+function getValueFromInput(name) {
   return $('input[name=' + name + ']').val();
 }
-function takeFromSelect(name) {
+function getValueFromSelect(name) {
   return $('select[name=' + name + '] option:selected').text();
 }
 function takeTextNextTo(name) {
   return $("td.formleft:contains('" + name + "')").next().get(0).innerText.trim();
 }
-
 
 // ################################################
 // ## FUNCTIONS SPECIFIC TO AUTOVETTURE PROCESS ###
@@ -100,6 +128,10 @@ function makePage(title, time, info) {
   }
   data.form = info;
   return data;
+}
+
+function parsePremioNetto() {
+  return ncd($("td.labelB").last().text().substring(7).trim());
 }
 
 function takeRiepilogoGenerale() {
@@ -167,9 +199,6 @@ function takeQuestionario() {
   };
 }
 
-function parsePremioNetto() {
-  return ncd($("td.labelB").last().text().substring(7).trim());
-}
 
 function takeDatiAnagrafici() {
   const fields = $('tr > td.formleft, tr > td.label')
@@ -225,19 +254,19 @@ function takeElencoGaranzie() {
 
   const data = {};
   data.Tabella = $('form[name=form0] tr').toArray().slice(1,8).map(child);
-  data.CodiceAutorizzazione = takeFromInput('PN03_NUMERO_AUTOR');
+  data.CodiceAutorizzazione = getValueFromInput('PN03_NUMERO_AUTOR');
   return data;
 }
 
 function takeAttestatoDiRischio() {
   const data = {};
-  data.siglaTarga = takeFromInput('siglaTarga');
-  data.numTarga = takeFromInput('numTarga');
-  data.siglaTargaATR = takeFromInput('siglaTargaATR');
-  data.numTargaATR = takeFromInput('numTargaATR');
-  data.siglaTargaAnia = takeFromInput('siglaTargaAnia');
-  data.numTargaAnia = takeFromInput('numTargaAnia');
-  data.polRif = takeFromInput('polRif');
+  data.siglaTarga = getValueFromInput('siglaTarga');
+  data.numTarga = getValueFromInput('numTarga');
+  data.siglaTargaATR = getValueFromInput('siglaTargaATR');
+  data.numTargaATR = getValueFromInput('numTargaATR');
+  data.siglaTargaAnia = getValueFromInput('siglaTargaAnia');
+  data.numTargaAnia = getValueFromInput('numTargaAnia');
+  data.polRif = getValueFromInput('polRif');
   return data;
 }
 
@@ -251,7 +280,7 @@ function takeAttestatoDiRischioSummary() {
   }
 
   const data = {};
-  data.compagniaProv = takeFromSelect('compagniaProv');
+  data.compagniaProv = getValueFromSelect('compagniaProv');
   data.Targa = takeTextNextTo('Targa');
   data.TipoEmissione = takeTextNextTo('Tipo Emissione');
   data.FormaTariffaria = takeTextNextTo('Forma tariffaria');
@@ -279,21 +308,21 @@ function takeProdottoAutovetture() {
   data.ClassificazioneVeicolo = takeTextNextTo('CLASSIFICAZIONE VEICOLO');
   data.Massimale = $('select[name=dt_057] option:selected').text();
   data.Eta = parseInt(takeTextNextTo('ETA'));
-  data.CavalliFiscali = takeFromInput('dt_037');
+  data.CavalliFiscali = getValueFromInput('dt_037');
   data.TipoCliente = takeTextNextTo('TIPO CLIENTE');
   data.ProvinciaTariffa = takeTextNextTo('PROVINCIA DI TARIFFA');
   data.CapIntestatarioPra = takeTextNextTo('CAP INTESTATARIO PRA');
-  data.PotenzaKw = ncd(takeFromInput('dt_056'));
-  data.Alimentazione = takeFromInput('dt_151');
+  data.PotenzaKw = ncd(getValueFromInput('dt_056'));
+  data.Alimentazione = getValueFromInput('dt_151');
   // apostrophs removed
   data.EtaVeicolo = parseInt(takeTextNextTo('DEL VEICOLO (IN MESI)'));
   data.ClasseImpresa = takeTextNextTo('CLASSE DI B/M DELL');
-  data.ProprietarioContraente = takeFromInput('dt_981');
-  data.Proprietario10Anni = takeFromInput('dt_382');
-  data.TipologiaGuida = takeFromInput('dt_900');
+  data.ProprietarioContraente = getValueFromInput('dt_981');
+  data.Proprietario10Anni = getValueFromInput('dt_382');
+  data.TipologiaGuida = getValueFromInput('dt_900');
   data.NumSinistriInAdr = takeTextNextTo('NUM. SINISTRI IN ADR');
   data.AnniConsecutivi = ncd(takeTextNextTo('ANNI CONSECUTIVI SENZA SX'));
-  data.RinunciaRivalsa = takeFromInput('dt_945');
+  data.RinunciaRivalsa = getValueFromInput('dt_945');
   data.PremioNetto = parsePremioNetto();
 
   return data;
@@ -301,39 +330,39 @@ function takeProdottoAutovetture() {
 
 function takeDatiContratto() {
   const data = {};
-  data.Decorrenza = takeFromInput('dataDecor');
-  data.Ora = parseInt(takeFromInput('oraDecor'));
-  data.ScadenzaPolizza = takeFromInput('dataView1');
-  data.Frazionamento = takeFromSelect('fraz');
-  data.ScadenzaRata = takeFromSelect('scadRataC');
-  data.DurataAnni = parseInt(takeFromInput('durataAnni'));
-  data.DurataMesi = parseInt(takeFromInput('durataMesi'));
-  data.DurataGiorni = parseInt(takeFromInput('durataGiorni'));
-  data.CodiceIntermediario = takeFromInput('codSubagente');
-  data.CodiceConvenzione = takeFromSelect('codConvenzione');
+  data.Decorrenza = getValueFromInput('dataDecor');
+  data.Ora = parseInt(getValueFromInput('oraDecor'));
+  data.ScadenzaPolizza = getValueFromInput('dataView1');
+  data.Frazionamento = getValueFromSelect('fraz');
+  data.ScadenzaRata = getValueFromSelect('scadRataC');
+  data.DurataAnni = parseInt(getValueFromInput('durataAnni'));
+  data.DurataMesi = parseInt(getValueFromInput('durataMesi'));
+  data.DurataGiorni = parseInt(getValueFromInput('durataGiorni'));
+  data.CodiceIntermediario = getValueFromInput('codSubagente');
+  data.CodiceConvenzione = getValueFromSelect('codConvenzione');
   data.CodiceAutorizzazione =  takeTextNextTo('Codice Autorizzazione');
    // formLeft
   data.PolizzaIndicizzata = $("td.formLeft:contains('Polizza indicizzata')").next().get(0).innerText;
   data.NuovoAttestato = takeTextNextTo('Nuovo Attestato');
-  data.NumeroTessera = takeFromInput('numTessera');
-  data.CodiceProduttore = takeFromInput('codProduttore');
-  data.Vincolo = takeFromInput('vincolo');
-  data.ScadenzaVincolo = takeFromInput('dataView3');
-  data.PolizzaInAssicurazione = takeFromSelect('coassicurazione');
-  data.CodiceAssegnazione = takeFromSelect('codAssegnazione');
-  data.DataImmatricolazione = takeFromInput('dataView2');
+  data.NumeroTessera = getValueFromInput('numTessera');
+  data.CodiceProduttore = getValueFromInput('codProduttore');
+  data.Vincolo = getValueFromInput('vincolo');
+  data.ScadenzaVincolo = getValueFromInput('dataView3');
+  data.PolizzaInAssicurazione = getValueFromSelect('coassicurazione');
+  data.CodiceAssegnazione = getValueFromSelect('codAssegnazione');
+  data.DataImmatricolazione = getValueFromInput('dataView2');
   return data;
 }
 
-function getPageFromStorage(name) {
-  return JSON.parse(window.sessionStorage.getItem(paginaPrefix + name));
-}
 
+/** Takes all the saved pages
+ *  and parses them into the object "Navigation-Action"
+ */
 function groupFullObjectsAsJson() {
   const generalFields = {
-    "user": window.sessionStorage.getItem('User'),
-    "session_id": window.sessionStorage.getItem('SessionID'),
-    "timestamp_iso": window.sessionStorage.getItem('TimestampISO')
+    "user": getFromStorage('User'),
+    "session_id": getFromStorage('SessionID'),
+    "timestamp_iso": getFromStorage('TimestampISO')
   };
 
   const autovetturePagine = [
@@ -377,6 +406,9 @@ function sendToServer() {
   });
 }
 
+/** checks CU conditions
+ *
+ */
 function checkCU(sinistri, cuPermessi) {
   return sinistri[4] <= cuPermessi[0]
   && sinistri[3] <= cuPermessi[1]
@@ -385,6 +417,9 @@ function checkCU(sinistri, cuPermessi) {
   && sinistri[0] <= cuPermessi[4];
 }
 
+/** changes the input text in Elenco Garanzie
+ *
+ */
 function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields) {
   elencoGaranzie.forEach(function(item) {
     const codGaranzia = fields[item.name];
@@ -415,7 +450,7 @@ function assignDiscounts(jsonObject) {
   const prodAutovetture  = getPageFromStorage('Prodotto AUTOVETTURE');
   const attestatoRischio = getPageFromStorage('Attestato di Rischio 2');
   const elencoGaranzie   = getPageFromStorage('Elenco Garanzie').form.Tabella;
-  const chosenProdottoVendibile = window.sessionStorage.getItem("CodiceProdotto");
+  const chosenProdottoVendibile = getFromStorage("CodiceProdotto");
   const provincia = datiAnagrafici.form.DatiContraente[6].Provincia;
   const etaContraente = prodAutovetture.form.Eta;
   const etaVeicolo = prodAutovetture.form.EtaVeicolo;
@@ -443,15 +478,15 @@ function assignDiscounts(jsonObject) {
     const sconto = jsonObject.arrSconti.find(function(x) {
       return x.garanzia === codGaranzia;
     });
+
     if(sconto === -1) {
       return [0,0];
-    }
-    else {
+    } else {
       return [sconto.scontoMax, sconto.scontoMin];
     }
   }
 
-  const codiciGaranzie = JSON.parse(window.sessionStorage.getItem("CodiciGaranzie"));
+  const codiciGaranzie = getJsonValue("CodiciGaranzie");
   const fields = Object.fromEntries(
     codiciGaranzie.map(function(x){
       return [x.codice_web, x.codice];
@@ -493,21 +528,20 @@ function whichAutovetturePage(title) {
   }
 }
 
-function getUserProfile() {
-  return JSON.parse(window.sessionStorage.getItem('UserProfile'));
-}
-
-function setStorageKey(key, val) {
-  window.sessionStorage.setItem(key, val);
-}
-
+/** takes user profile
+ *  and disables the garanzie unavailable for the user
+ */
 function selectGaranzie(dataProdotti, dataGaranzie) {
-  const profile = getUserProfile();
+  const profile = getJsonValue('UserProfile');
   const codprod = getParameterByName("codprod");
-  const scod = dataProdotti.find(function(x){ return x.codice_web === codprod; });
+  const scod = dataProdotti.find(function(x){
+    return x.codice_web === codprod;
+  });
   if(scod !== undefined) {
     setStorageKey("CodiceProdotto", scod.codice);
-    const garanzieVendibili = profile.arrProdottiVendibili.find(function(x){ return x.prodotto === scod.codice;});
+    const garanzieVendibili = profile.arrProdottiVendibili.find(function(x){
+      return x.prodotto === scod.codice;
+    });
     if(garanzieVendibili !== undefined) {
       dataGaranzie.forEach(function(x){
         if($.inArray(x.codice, garanzieVendibili.arrGaranzie) === -1) {
@@ -529,13 +563,16 @@ function endSessionTaking(title, ts) {
 }
 
 function getProdottiVendibiliIndices() {
-  return getUserProfile()
+  return getJsonValue('UserProfile')
     .arrProdottiVendibili
     .map(function(x){ return parseInt(x.prodotto.substring(1))-1;});
 }
 
-function saveInitialPageInformation() {
-  window.sessionStorage.clear();
+function isInitialScreen() {
+  return $('div.logo-full-screen').length === 1;
+}
+
+function saveSessionGeneralInformation() {
   const user = window.localStorage.getItem('lookinglassUserID');
   setStorageKey('User', user);
   setStorageKey('SessionID', getSessionIdFromCookies());
@@ -555,13 +592,32 @@ function selectProdottiVendibili() {
   });
 }
 
+function initiateSession() {
+    clearStorage();
+    saveSessionGeneralInformation();
+
+    if($("td.alternate").length > 0) {
+      $("td.alternate").click(function(ev){
+        if(getJsonValue('UserProfile') === null){
+          ev.preventDefault();
+          window.alert("still downloading UserProfile");
+        }
+      });
+    }
+}
+
 $(document).ready(function(){
   // adds listeners after each page loads
   // the page has to be identified by metro-title,
   // since the url doesn't always change
-  var title = $('h2.metro-title').text().trim(); // must be var
+  var title = $('h2.metro-title').text().trim(); // must be varchar
+
   const timestamp = new Date();
   console.log("title: " + title);
+
+  if(isInitialScreen() && location.href.includes('login.do')) {
+    initiateSession();
+  }
 
   switch(title) {
   case "Prodotto AUTOVETTURE":
@@ -569,21 +625,14 @@ $(document).ready(function(){
     $("a.linkball").last().click(function() {
       const info = takeProdottoAutovetture();
       const jsonObj = makePage(title, timestamp.toISOString(), info);
-      if(window.sessionStorage.getItem(paginaPrefix + title) !== null) {
+      if(getPageFromStorage(title) !== null) {
         title = title + " 2";
       }
       setStorageKey(paginaPrefix + title, JSON.stringify(jsonObj));
     });
     break;
   case 'Gruppi Prodotto':
-    saveInitialPageInformation();
-
-    $("td.alternate").click(function(ev){
-      if(getUserProfile() === null){
-        ev.preventDefault();
-        window.alert("still downloading UserProfile");
-      }
-    });
+    initiateSession();
     break;
   case 'Elenco Prodotti':
     selectProdottiVendibili();
@@ -592,7 +641,7 @@ $(document).ready(function(){
     endSessionTaking(title, timestamp);
     break;
   case 'Riepilogo Garanzie':
-    assignDiscounts(JSON.parse(window.sessionStorage.getItem('UserProfile')));
+    assignDiscounts(getJsonValue('UserProfile'));
     break;
   default:
     if(title === 'Elenco Garanzie') {
@@ -607,7 +656,7 @@ $(document).ready(function(){
     $("a:contains('Prosegui')").click(function() {
       const info = whichAutovetturePage(title, $);
       const jsonObj = makePage(title, timestamp.toISOString(), info);
-      if(window.sessionStorage.getItem(paginaPrefix + title) !== null) {
+      if(getPageFromStorage(title) !== null) {
         title = title + " 2";
       }
       setStorageKey(paginaPrefix + title, JSON.stringify(jsonObj));
