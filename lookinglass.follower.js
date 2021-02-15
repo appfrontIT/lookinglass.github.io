@@ -22,6 +22,17 @@ function checkMinMax(event) {
     $that.val(min);
   }
 }
+
+function updateValue(event) {
+  const $that = $(event.target);
+  const val = $that.val();
+  const name = $that.prop("name");
+  const $stateValue = $("p#state_"+name);
+  if($stateValue.length === 1) {
+    $stateValue.text(val);
+  }
+
+}
 // gets parameters from the url
 function getParameterByName(name, url = window.location.href) {
     name = name.replace(/[\[\]]/g, '\\$&');
@@ -425,7 +436,8 @@ function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields)
     const codGaranzia = fields[item.name];
     if(item.Sel && ($.inArray(codGaranzia, garanzieVendibili) !== -1)) {
       const sconti = getSconto(codGaranzia);
-      $('input[name='+item.name.replace("chk", "sc")+']')
+      const itemName = item.name.replace("chk", "sc");
+      $('input[name=' + itemName + ']')
       .prop("disabled", false)
       .val("0.00")
       .attr({
@@ -434,7 +446,10 @@ function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields)
         max: sconti[0],
         step: 0.5
       })
-      .change(checkMinMax);
+      .change(checkMinMax)
+      .change(updateValue)
+      .before('<p><span style="float:left">'+sconti[1]+'%</span> <span style="float:right">'+sconti[0]+'%</span></p>' )
+      .after('<p id="state_' + itemName + '"></p>');
     }
   });
 }
