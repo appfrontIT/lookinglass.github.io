@@ -365,6 +365,28 @@ function takeDatiContratto() {
   return data;
 }
 
+function saveDettaglioAnagrafica() {
+  const data = {};
+  data.CodiceFiscale = getValueFromInput('AN_CODFISC');
+  data.Cognome = getValueFromInput('AN_COGNOME');
+  data.Nome = getValueFromInput('AN_NOME');
+  data.DataNascita = getValueFromInput('AN_DATA_NASCITA');
+  data.LuogoNascita = getValueFromInput('AN_LUOGO_NASCITA');
+  data.Indirizzo = getValueFromInput('AN_INDIRIZZO');
+  data.ProvinciaNascita = getValueFromSelect('AN_PROV_NASCITA_1');
+  data.Comune = getValueFromInput('AN_COMUNE');
+  data.Sesso = getValueFromSelect('AN_SESSO');
+  data.Provincia = getValueFromSelect('AN_PROVINCIA_1');
+  data.Nazionalita = getValueFromSelect('AN_NAZIONALITA');
+  data.StatoResidenza = getValueFromSelect('AN_STATORESIDENZA');
+  data.CAP = getValueFromInput('AN_CAP');
+  data.CodiceCliente = getValueFromSelect('AN_CODCLIENTE');
+  data.AgenziaResponsabilita = getValueFromInput('AN_AGEN_RESPONSAB');
+  data.ConsensoPrivacy = takeTextNextTo('Consenso privacy');
+  data.DataPrivacy = takeTextNextTo('Data Privacy');
+  return data;
+}
+
 
 /** Takes all the saved pages
  *  and parses them into the object "Navigation-Action"
@@ -655,6 +677,9 @@ $(document).ready(function(){
     break;
   case 'Gruppi Prodotto':
     initiateSession();
+    break;
+  case 'Dettaglio Anagrafica':
+    setStorageKey(paginaPrefix + title, JSON.stringify(saveDettaglioAnagrafica()));
     break;
   case 'Elenco Prodotti':
     selectProdottiVendibili();
