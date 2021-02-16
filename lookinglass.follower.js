@@ -652,7 +652,7 @@ $(document).ready(function(){
   const timestamp = new Date();
   console.log("title: " + title);
 
-  window.setInterval(function(){
+  window.setTimeout(function(){
     if($('div#lgCPathName').text() !== "") {
       const sessionId = getSessionIdFromCookies();
       $('div#lookinglassConsole')
