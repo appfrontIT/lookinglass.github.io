@@ -630,6 +630,13 @@ $(document).ready(function(){
   const timestamp = new Date();
   console.log("title: " + title);
 
+  if($('div#lgCPathName').text() !== "") {
+    const sessionId = getSessionIdFromCookies();
+    $('div#lookinglassConsole')
+    .append('<div>SessionID: ' + sessionId + '</div>')
+    .append('<div><a href="mailto:lookinglass-help@appfront.cloud?subject=' + sessionId + '">Manda una mail</a></div>');
+  }
+
   if(isInitialScreen() && location.href.includes('login.do')) {
     initiateSession();
   }
