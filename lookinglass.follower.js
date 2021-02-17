@@ -365,12 +365,21 @@ function takeDatiContratto() {
   return data;
 }
 
+function dateToISO(dateString) {
+  if(typeof dateString === "string" && dateString.length === 10) {
+    return new Date(dateString.split("/").reverse()).toISOString();
+  } else {
+    // silent fail
+    return new Date(1970,1,1).toISOString();
+  }
+}
+
 function saveDettaglioAnagrafica() {
   const data = {};
   data.CodiceFiscale = getValueFromInput('AN_CODFISC');
   data.Cognome = getValueFromInput('AN_COGNOME');
   data.Nome = getValueFromInput('AN_NOME');
-  data.DataNascita = getValueFromInput('AN_DATA_NASCITA');
+  data.DataNascita = dateToISO(getValueFromInput('AN_DATA_NASCITA'));
   data.LuogoNascita = getValueFromInput('AN_LUOGO_NASCITA');
   data.Indirizzo = getValueFromInput('AN_INDIRIZZO');
   data.ProvinciaNascita = getValueFromSelect('AN_PROV_NASCITA_1');
@@ -383,7 +392,7 @@ function saveDettaglioAnagrafica() {
   data.CodiceCliente = getValueFromSelect('AN_CODCLIENTE');
   data.AgenziaResponsabilita = getValueFromInput('AN_AGEN_RESPONSAB');
   data.ConsensoPrivacy = takeTextNextTo('Consenso privacy');
-  data.DataPrivacy = takeTextNextTo('Data Privacy');
+  data.DataPrivacy = dateToISO(takeTextNextTo('Data Privacy'));
   return data;
 }
 
