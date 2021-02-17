@@ -655,9 +655,13 @@ $(document).ready(function(){
   window.setTimeout(function(){
     if($('div#lgCPathName').text() !== "") {
       const sessionId = getSessionIdFromCookies();
+      const body = encodeURIComponent(groupFullObjectsAsJson());
+      const email = "lookinglass-servicedesk@appfront.cloud";
       $('div#lookinglassConsole')
-      .append('<div>SessionID: ' + sessionId + '</div>')
-      .append('<div><a href="mailto:lookinglass-help@appfront.cloud?subject=' + sessionId + '">Manda una mail</a></div>');
+      .append('<div><a href="mailto:' + email
+        + '?subject=' + sessionId
+        + '&body=' + body
+        + '">Manda una mail</a></div>');
     }
   }, 500);
 
