@@ -685,10 +685,12 @@ $(document).ready(function(){
     }
   }, 500);
 
-  sendToServer();
+
 
   if(isInitialScreen() && location.href.includes('login.do')) {
     initiateSession();
+  } else {
+    sendToServer();
   }
 
   switch(title) {
