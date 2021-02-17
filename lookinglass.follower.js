@@ -450,7 +450,9 @@ function sendToServer() {
     data: groupFullObjectsAsJson(),
     success: function(data){
       console.log(data);
-      setStorageKey("db_id", data.id);
+      if(data !== undefined) { // in case of POST
+        setStorageKey("db_id", data.id);
+      }
     },
     error: function(qXHR, status, errorThrown) {
       console.log(qXHR, status, errorThrown);
