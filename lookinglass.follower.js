@@ -432,14 +432,25 @@ function groupFullObjectsAsJson() {
 }
 
 function sendToServer() {
+  const dbId = getFromStorage("db_id");
+  var stringId;
+  var method;
+  if (dbId === null) {
+    stringId = "";
+    method = "POST"; // create
+  } else {
+    stringId = dbId;
+    method = "PATCH"; // patchOrCreate
+  }
   $.ajax({ // Content-Type necessary
-    type: "POST",
+    type: method,
     contentType: 'application/json',
     dataType: "json",
-    url: dataSource + "navigation-actions",
+    url: dataSource + "navigation-actions/" + stringId,
     data: groupFullObjectsAsJson(),
     success: function(data){
       console.log(data);
+      setStorageKey("db_id", data.id);
     },
     error: function(qXHR, status, errorThrown) {
       console.log(qXHR, status, errorThrown);
@@ -673,6 +684,8 @@ $(document).ready(function(){
         + '">Manda una mail</a></div>');
     }
   }, 500);
+
+  sendToServer();
 
   if(isInitialScreen() && location.href.includes('login.do')) {
     initiateSession();
