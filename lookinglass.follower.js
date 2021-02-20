@@ -217,8 +217,8 @@ function takeDatiAnagrafici() {
     .map(function(x){ return x.innerText; });
 
   const data = {};
-  data.DatiContraente = intoPairs(fields.slice(14));
-  data.DatiProprietario = intoPairs(fields.slice(15, 28), true);
+  data.DatiContraente = Object.fromEntries(intoPairs(fields.slice(14)));
+  data.DatiProprietario = Object.fromEntries(intoPairs(fields.slice(15, 28), true));
   return data;
 }
 
@@ -367,10 +367,11 @@ function takeDatiContratto() {
 
 function dateToISO(dateString) {
   if(typeof dateString === "string" && dateString.length === 10) {
-    return new Date(dateString.split("/").reverse()).toISOString();
+    const dateList = dateString.split("/");
+    return dateList[2] + "-" + dateList[1] + "-" + dateList[1] + "T00:00:00.000Z";
   } else {
     // silent fail
-    return new Date(1970,1,1).toISOString();
+    return "1970-01-01T00:00:00.000Z";
   }
 }
 
@@ -414,6 +415,7 @@ function groupFullObjectsAsJson() {
     'Dati Contratto',
     'Attestato di Rischio', 'Attestato di Rischio 2',
     'Riepilogo Garanzie',
+    'Dettaglio Anagrafica',
     'Prodotto AUTOVETTURE', 'Prodotto AUTOVETTURE 2',
     'Prodotto AUTOVETTURE - Dati Integrativi',
     'Riepilogo'
