@@ -401,7 +401,8 @@ function groupFullObjectsAsJson() {
   const generalFields = {
     "user": getFromStorage('User'),
     "session_id": getFromStorage('SessionID'),
-    "timestamp_iso": getFromStorage('TimestampISO')
+    "timestamp_iso": getFromStorage('TimestampISO'),
+    "visited_pages": getFromStorage('VisitedPages')
   };
 
   const autovetturePagine = [
@@ -667,12 +668,12 @@ function initiateSession() {
 }
 
 function addToVisitedPagesList() {
-  const visitedPages = getJsonValue("visited_pages");
+  const visitedPages = getJsonValue("VisitedPages");
   if(visitedPages !== null) {
     visitedPages.push(location.href);
-    setStorageKey("visited_pages", JSON.stringify(visitedPages));
+    setStorageKey("VisitedPages", JSON.stringify(visitedPages));
   } else {
-    setStorageKey("visited_pages", JSON.stringify([location.href]));
+    setStorageKey("VisitedPages", JSON.stringify([location.href]));
   }
 }
 
