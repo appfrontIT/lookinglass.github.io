@@ -53,17 +53,13 @@ function ncd(num) {
   }
 }
 
-function intoPairs(arr, invert = false) {
-  return arr.reduce(function(result, ignore, index, array) {
+function intoPairsObject(arr, invert = false) {
+  return Object.fromEntries(arr.reduce(function(result, ignore, index, array) {
     if (index % 2 === 0) {
       result.push(array.slice(index, index + 2));
     }
-    return result;
-  }, []).map(function(x){
-    const t = {};
-    if(invert) { t[x[1]] = x[0]; } else { t[x[0]] = x[1]; }
-    return t;
-  });
+    return invert ? result.reverse() : result;
+  }, []));
 }
 
 function isTextOnPage(str) {
@@ -217,8 +213,8 @@ function takeDatiAnagrafici() {
     .map(function(x){ return x.innerText; });
 
   const data = {};
-  data.DatiContraente = Object.fromEntries(intoPairs(fields.slice(14)));
-  data.DatiProprietario = Object.fromEntries(intoPairs(fields.slice(15, 28), true));
+  data.DatiContraente = intoPairsObject(fields.slice(14));
+  data.DatiProprietario = intoPairsObject(fields.slice(15, 28), true);
   return data;
 }
 
@@ -368,7 +364,7 @@ function takeDatiContratto() {
 function dateToISO(dateString) {
   if(typeof dateString === "string" && dateString.length === 10) {
     const dateList = dateString.split("/");
-    return dateList[2] + "-" + dateList[1] + "-" + dateList[1] + "T00:00:00.000Z";
+    return dateList[2] + "-" + dateList[1] + "-" + dateList[0] + "T00:00:00.000Z";
   } else {
     // silent fail
     return "1970-01-01T00:00:00.000Z";
@@ -380,7 +376,7 @@ function saveDettaglioAnagrafica() {
   data.CodiceFiscale = getValueFromInput('AN_CODFISC');
   data.Cognome = getValueFromInput('AN_COGNOME');
   data.Nome = getValueFromInput('AN_NOME');
-  data.DataNascita = dateToISO(getValueFromInput('AN_DATA_NASCITA'));
+  data.DataNascita = dateToISO(getValueFromInput('dataView0'));
   data.LuogoNascita = getValueFromInput('AN_LUOGO_NASCITA');
   data.Indirizzo = getValueFromInput('AN_INDIRIZZO');
   data.ProvinciaNascita = getValueFromSelect('AN_PROV_NASCITA_1');
@@ -494,7 +490,10 @@ function activateDiscounts(elencoGaranzie, garanzieVendibili, getSconto, fields)
       })
       .change(checkMinMax)
       .change(updateValue)
-      .before('<p style="font-size:14px;"><span style="float:left">'+sconti[1]+'%</span> <span style="float:right">'+sconti[0]+'%</span></p>')
+      .before('<p style="font-size:14px;">'
+        + '<span style="float:left">'  + sconti[1] + '%</span>'
+        + '<span style="float:right">' + sconti[0] + '%</span>'
+        + '</p>')
       .after('<p id="state_' + itemName + '" style="font-size:14px;">0%</p>');
     }
   });
@@ -512,7 +511,7 @@ function assignDiscounts(jsonObject) {
   const attestatoRischio = getPageFromStorage('Attestato di Rischio 2');
   const elencoGaranzie   = getPageFromStorage('Elenco Garanzie').form.Tabella;
   const chosenProdottoVendibile = getFromStorage("CodiceProdotto");
-  const provincia = datiAnagrafici.form.DatiContraente[6].Provincia;
+  const provincia = datiAnagrafici.form.DatiContraente.Provincia;
   const etaContraente = prodAutovetture.form.Eta;
   const etaVeicolo = prodAutovetture.form.EtaVeicolo;
   // slice(0,-1) because the last one has letters
@@ -648,29 +647,41 @@ function selectProdottiVendibili() {
   const idxs = getProdottiVendibiliIndices();
   $("a.link").toArray().forEach(function(item, idx){
     if($.inArray(idx, idxs) === -1) {
-      $(item).removeAttr("href").attr('disabled', 'disabled').css("background", "grey");
+      $(item).removeAttr("href").attr('disabled', 'disabled').css('background', 'grey');
     }
   });
 }
 
 function initiateSession() {
-    clearStorage();
-    saveSessionGeneralInformation();
+  clearStorage();
+  saveSessionGeneralInformation();
 
-    if($("td.alternate").length > 0) {
-      $("td.alternate").click(function(ev){
-        if(getJsonValue('UserProfile') === null){
-          ev.preventDefault();
-          window.alert("still downloading UserProfile");
-        }
-      });
-    }
+  if($("td.alternate").length > 0) {
+    $("td.alternate").click(function(ev){
+      if(getJsonValue('UserProfile') === null){
+        ev.preventDefault();
+        window.alert("still downloading UserProfile");
+      }
+    });
+  }
+}
+
+function addToVisitedPagesList() {
+  const visitedPages = getJsonValue("visited_pages");
+  if(visitedPages !== null) {
+    visitedPages.push(location.href);
+    setStorageKey("visited_pages", JSON.stringify(visitedPages));
+  } else {
+    setStorageKey("visited_pages", JSON.stringify([location.href]));
+  }
 }
 
 $(document).ready(function(){
   // adds listeners after each page loads
   // the page has to be identified by metro-title,
   // since the url doesn't always change
+  addToVisitedPagesList();
+
   var title = $('h2.metro-title').text().trim(); // must be varchar
 
   const timestamp = new Date();
@@ -683,7 +694,7 @@ $(document).ready(function(){
       const email = "lookinglass-servicedesk@appfront.cloud";
       $('div#lookinglassConsole')
       .append('<div><a href="mailto:' + email
-        + '?subject=' + sessionId
+        + '?subject=SessionID: ' + sessionId
         + '&body=' + body
         + '">Manda una mail</a></div>');
     }
